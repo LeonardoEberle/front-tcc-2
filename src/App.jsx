@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './Components/Navbar';
 import Dashboard from './Pages/Dashboard';
-import Login from './Pages/Login';
+import Login from './Pages/Login/Login.jsx';
 import Cadastro from './Pages/Cadastro';
 import RecupSenha from './Pages/RecupSenha';
 import IdeiasList from './Pages/IdeiasList';
