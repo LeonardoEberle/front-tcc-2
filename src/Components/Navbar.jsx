@@ -6,7 +6,6 @@ function Navbar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
-    // Por enquanto apenas redireciona
     navigate('/login');
   };
 
@@ -14,36 +13,46 @@ function Navbar() {
     display: 'flex',
     justifyContent: 'space-around',
     alignItems: 'center',
-    padding: '10px',
-    borderBottom: '1px solid black',
+    padding: '15px 10px',
+    borderBottom: '2px solid #000',
     backgroundColor: '#fff',
     marginBottom: '20px'
   };
 
   const linkStyle = {
     textDecoration: 'none',
-    color: 'black',
-    padding: '5px 10px',
-    border: '1px solid transparent'
+    color: '#000', // Preto puro
+    padding: '8px 15px',
+    fontWeight: 'bold',
+    fontSize: '16px'
   };
 
   const buttonStyle = {
-    background: 'none',
-    border: '1px solid black',
+    background: '#fff',
+    border: '2px solid #000',
+    color: '#000',
     cursor: 'pointer',
-    padding: '5px 10px'
+    padding: '8px 15px',
+    fontWeight: 'bold',
+    fontSize: '14px'
+  };
+
+  const logoutButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: '#000',
+    color: '#fff'
   };
 
   const popupStyle = {
     position: 'absolute',
-    top: '50px',
-    right: '100px',
-    width: '250px',
-    backgroundColor: 'white',
-    border: '1px solid black',
-    padding: '10px',
+    top: '60px',
+    right: '50px',
+    width: '280px',
+    backgroundColor: '#fff',
+    border: '2px solid #000',
+    padding: '15px',
     zIndex: 1000,
-    boxShadow: '2px 2px 5px rgba(0,0,0,0.2)'
+    boxShadow: '4px 4px 0px rgba(0,0,0,1)' // Sombra sólida estilo neobrutalismo
   };
 
   return (
@@ -61,17 +70,22 @@ function Navbar() {
         </button>
         {showNotifications && (
           <div style={popupStyle}>
-            <h4>Notificações</h4>
-            <ul style={{ listStyle: 'none', padding: 0 }}>
-              <li style={{ borderBottom: '1px solid #eee', padding: '5px 0' }}>Nenhuma notificação nova.</li>
+            <h4 style={{ margin: '0 0 10px 0', color: '#000', borderBottom: '1px solid #000' }}>Notificações</h4>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+              <li style={{ padding: '8px 0', color: '#000', fontSize: '14px' }}>Nenhuma notificação nova.</li>
             </ul>
-            <button onClick={() => setShowNotifications(false)} style={{ ...buttonStyle, marginTop: '10px', width: '100%' }}>Fechar</button>
+            <button 
+              onClick={() => setShowNotifications(false)} 
+              style={{ ...buttonStyle, marginTop: '10px', width: '100%', backgroundColor: '#000', color: '#fff' }}
+            >
+              Fechar
+            </button>
           </div>
         )}
       </div>
 
       <Link to="/perfil" style={linkStyle}>Perfil</Link>
-      <button onClick={handleLogout} style={buttonStyle}>Sair</button>
+      <button onClick={handleLogout} style={logoutButtonStyle}>Sair</button>
     </nav>
   );
 }

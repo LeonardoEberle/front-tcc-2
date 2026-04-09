@@ -8,6 +8,8 @@ import RecupSenha from './Pages/RecupSenha';
 import IdeiasList from './Pages/IdeiasList';
 import MinhasIdeias from './Pages/MinhasIdeias';
 import Perfil from './Pages/Perfil';
+import Ideia from './Pages/Ideia';
+import EditarIdeia from './Pages/EditarIdeia';
 import './App.css';
 
 function Layout({ children }) {
@@ -37,6 +39,8 @@ function App() {
           <Route path="/ideias" element={<IdeiasList />} />
           <Route path="/minhas-ideias" element={<MinhasIdeias />} />
           <Route path="/perfil" element={<Perfil />} />
+          <Route path="/ideia/:id" element={<Ideia />} />
+          <Route path="/editar-ideia/:id" element={<EditarIdeia />} />
         </Routes>
       </Layout>
     </Router>

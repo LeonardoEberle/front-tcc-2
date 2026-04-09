@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import mockData from '../mock_data.json';
 import noImage from '../assets/noimage.jpg';
 
 function IdeiasList() {
   const [ideias, setIdeias] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Simulando carregamento de API
@@ -24,7 +26,7 @@ function IdeiasList() {
   };
 
   const cardStyle = {
-    border: '1px solid #000',
+    border: '2px solid #000',
     backgroundColor: '#fff',
     padding: '15px',
     display: 'flex',
@@ -77,7 +79,7 @@ function IdeiasList() {
   const buttonStyle = {
     backgroundColor: '#000',
     color: '#fff',
-    border: '1px solid #000',
+    border: '2px solid #000',
     padding: '10px',
     cursor: 'pointer',
     fontWeight: 'bold',
@@ -94,13 +96,12 @@ function IdeiasList() {
     if (imagePath.startsWith('http')) {
       return imagePath;
     }
-    // Se for o caminho local src/assets/noimage.jpg, retorna o import
     return noImage;
   };
 
   return (
     <div style={containerStyle}>
-      <h1 style={{ color: '#000', borderBottom: '1px solid #000', paddingBottom: '10px' }}>
+      <h1 style={{ color: '#000', borderBottom: '2px solid #000', paddingBottom: '10px' }}>
         Ideias Publicadas
       </h1>
       
@@ -125,9 +126,9 @@ function IdeiasList() {
             
             <button 
               style={buttonStyle}
-              onClick={() => window.open(ideia.info.ida_info_link_video, '_blank')}
+              onClick={() => navigate(`/ideia/${ideia.ida_id}`)}
             >
-              Ver Pitch (Vídeo)
+              Ver Detalhes / Proposta
             </button>
           </div>
         ))}
