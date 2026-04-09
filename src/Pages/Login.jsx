@@ -10,25 +10,64 @@ function Login() {
     navigate('/');
   };
 
+  const containerStyle = {
+    padding: '40px 20px',
+    maxWidth: '400px',
+    margin: '40px auto',
+    backgroundColor: '#f5f5f5',
+    border: '1px solid #000',
+    textAlign: 'center'
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px',
+    border: '1px solid #000',
+    marginBottom: '15px',
+    boxSizing: 'border-box',
+    backgroundColor: '#fff',
+    color: '#000'
+  };
+
+  const labelStyle = {
+    display: 'block',
+    marginBottom: '5px',
+    fontWeight: 'bold',
+    color: '#000',
+    textAlign: 'left'
+  };
+
+  const buttonStyle = {
+    width: '100%',
+    padding: '12px',
+    border: '1px solid #000',
+    backgroundColor: '#000',
+    color: '#fff',
+    cursor: 'pointer',
+    fontWeight: 'bold',
+    fontSize: '16px',
+    marginTop: '10px'
+  };
+
   return (
-    <div style={{ padding: '20px', border: '1px solid black', margin: '20px', backgroundColor: '#f9f9f9' }}>
-      <h2>Login</h2>
+    <div style={containerStyle}>
+      <h2 style={{ color: '#000', marginBottom: '25px' }}>Entrar no Sistema</h2>
       <form onSubmit={handleLogin}>
         <div style={{ marginBottom: '10px' }}>
-          <label>Email:</label><br />
-          <input type="email" style={{ border: '1px solid black' }} />
+          <label style={labelStyle}>Email</label>
+          <input type="email" style={inputStyle} required />
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>Senha:</label><br />
-          <input type="password" style={{ border: '1px solid black' }} />
+          <label style={labelStyle}>Senha</label>
+          <input type="password" style={inputStyle} required />
         </div>
-        <button type="submit" style={{ border: '1px solid black', padding: '5px 10px', cursor: 'pointer' }}>
+        <button type="submit" style={buttonStyle}>
           Entrar
         </button>
       </form>
-      <div style={{ marginTop: '10px' }}>
-        <a href="/cadastro" style={{ marginRight: '10px' }}>Criar conta</a>
-        <a href="/recup-senha">Esqueci a senha</a>
+      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <a href="/cadastro" style={{ color: '#000', fontWeight: 'bold', textDecoration: 'underline' }}>Criar nova conta</a>
+        <a href="/recup-senha" style={{ color: '#000', fontSize: '14px' }}>Esqueci minha senha</a>
       </div>
     </div>
   );
