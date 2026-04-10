@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-route
 import Navbar from './Components/Navbar';
 import Dashboard from './Pages/Dashboard';
 import Login from './Pages/Login/Login.jsx';
-import Cadastro from './Pages/Cadastro';
+import Cadastro from './Pages/Cadastro/Cadastro.jsx';
 import RecupSenha from './Pages/RecupSenha';
 import IdeiasList from './Pages/IdeiasList';
 import MinhasIdeias from './Pages/MinhasIdeias';
