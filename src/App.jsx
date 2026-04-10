@@ -6,7 +6,7 @@ import Login from './Pages/Login/Login.jsx';
 import Cadastro from './Pages/Cadastro/Cadastro.jsx';
 import RecupSenha from './Pages/RecupSenha/RecupSenha.jsx';
 import IdeiasList from './Pages/IdeiasList/IdeiasList.jsx';
-import MinhasIdeias from './Pages/MinhasIdeias';
+import MinhasIdeias from './Pages/MinhasIdeias/MinhasIdeias.jsx';
 import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia/Ideia.jsx';
 import EditarIdeia from './Pages/EditarIdeia';
