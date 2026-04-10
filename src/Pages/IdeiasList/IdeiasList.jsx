@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import mockData from '../mock_data.json';
-import noImage from '../assets/noimage.jpg';
+import mockData from '../../mock_data.json';
+import noImage from '../../assets/noimage.jpg';
 
 function IdeiasList() {
   const [ideias, setIdeias] = useState([]);
