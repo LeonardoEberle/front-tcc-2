@@ -7,7 +7,7 @@ import Cadastro from './Pages/Cadastro/Cadastro.jsx';
 import RecupSenha from './Pages/RecupSenha/RecupSenha.jsx';
 import IdeiasList from './Pages/IdeiasList';
 import MinhasIdeias from './Pages/MinhasIdeias';
-import Perfil from './Pages/Perfil';
+import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia';
 import EditarIdeia from './Pages/EditarIdeia';
 import './App.css';
