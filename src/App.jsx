@@ -5,7 +5,7 @@ import Dashboard from './Pages/Dashboard/Dashboard.jsx';
 import Login from './Pages/Login/Login.jsx';
 import Cadastro from './Pages/Cadastro/Cadastro.jsx';
 import RecupSenha from './Pages/RecupSenha/RecupSenha.jsx';
-import IdeiasList from './Pages/IdeiasList';
+import IdeiasList from './Pages/IdeiasList/IdeiasList.jsx';
 import MinhasIdeias from './Pages/MinhasIdeias';
 import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia/Ideia.jsx';
