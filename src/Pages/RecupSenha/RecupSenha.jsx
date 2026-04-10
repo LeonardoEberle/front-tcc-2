@@ -1,5 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import styles from './RecupSenha.module.css';
+import logo from '../../assets/logo.png'; // Verifique se o caminho da logo está correto
 
 function RecupSenha() {
   const navigate = useNavigate();
@@ -11,19 +13,37 @@ function RecupSenha() {
   };
 
   return (
-    <div style={{ padding: '20px', border: '1px solid black', margin: '20px', backgroundColor: '#f9f9f9' }}>
-      <h1>Recuperar Senha</h1>
-      <form onSubmit={handleRecuperar}>
-        <div style={{ marginBottom: '10px' }}>
-          <label>Email:</label><br />
-          <input type="email" style={{ border: '1px solid black' }} />
+    <div className={styles.page}>
+      <div className={styles.container}>
+        <div className={styles.header}>
+          <img src={logo} alt="Logo" className={styles.logo} />
+          <h1 className={styles.title}>Recuperar Senha</h1>
+          <p className={styles.subtitle}>
+            Insira seu e-mail para receber as instruções de redefinição.
+          </p>
         </div>
-        <button type="submit" style={{ border: '1px solid black', padding: '5px 10px', cursor: 'pointer' }}>
-          Enviar link
-        </button>
-      </form>
-      <div style={{ marginTop: '10px' }}>
-        <a href="/login">Voltar para Login</a>
+
+        <form onSubmit={handleRecuperar}>
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Email</label>
+            <input 
+              type="email" 
+              className={styles.input} 
+              placeholder="Ex: seuemail@dominio.com"
+              required 
+            />
+          </div>
+
+          <button type="submit" className={styles.button}>
+            Enviar Link de Recuperação
+          </button>
+        </form>
+
+        <div className={styles.linkArea}>
+          <Link to="/login" className={styles.link}>
+            Voltar para o Login
+          </Link>
+        </div>
       </div>
     </div>
   );

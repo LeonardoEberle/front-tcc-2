@@ -4,7 +4,7 @@ import Navbar from './Components/Navbar';
 import Dashboard from './Pages/Dashboard';
 import Login from './Pages/Login/Login.jsx';
 import Cadastro from './Pages/Cadastro/Cadastro.jsx';
-import RecupSenha from './Pages/RecupSenha';
+import RecupSenha from './Pages/RecupSenha/RecupSenha.jsx';
 import IdeiasList from './Pages/IdeiasList';
 import MinhasIdeias from './Pages/MinhasIdeias';
 import Perfil from './Pages/Perfil';
