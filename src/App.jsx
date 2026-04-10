@@ -9,7 +9,7 @@ import IdeiasList from './Pages/IdeiasList/IdeiasList.jsx';
 import MinhasIdeias from './Pages/MinhasIdeias/MinhasIdeias.jsx';
 import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia/Ideia.jsx';
-import EditarIdeia from './Pages/EditarIdeia';
+import EditarIdeia from './Pages/EditarIdeia/EditarIdeia.jsx';
 import './App.css';
 
 function Layout({ children }) {
