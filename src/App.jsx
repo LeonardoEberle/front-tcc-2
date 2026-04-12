@@ -1,15 +1,15 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './Components/Navbar';
-import Dashboard from './Pages/Dashboard';
-import Login from './Pages/Login';
-import Cadastro from './Pages/Cadastro';
-import RecupSenha from './Pages/RecupSenha';
-import IdeiasList from './Pages/IdeiasList';
-import MinhasIdeias from './Pages/MinhasIdeias';
-import Perfil from './Pages/Perfil';
-import Ideia from './Pages/Ideia';
-import EditarIdeia from './Pages/EditarIdeia';
+import Dashboard from './Pages/Dashboard/Dashboard.jsx';
+import Login from './Pages/Login/Login.jsx';
+import Cadastro from './Pages/Cadastro/Cadastro.jsx';
+import RecupSenha from './Pages/RecupSenha/RecupSenha.jsx';
+import IdeiasList from './Pages/IdeiasList/IdeiasList.jsx';
+import MinhasIdeias from './Pages/MinhasIdeias/MinhasIdeias.jsx';
+import Perfil from './Pages/Perfil/Perfil.jsx';
+import Ideia from './Pages/Ideia/Ideia.jsx';
+import EditarIdeia from './Pages/EditarIdeia/EditarIdeia.jsx';
 import './App.css';
 
 function Layout({ children }) {

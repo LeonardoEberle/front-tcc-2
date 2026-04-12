@@ -1,0 +1,116 @@
+.page {
+  min-height: calc(100vh - 75px);
+  padding: 40px 20px;
+  background: linear-gradient(135deg, #0a3d91 0%, #1565c0 50%, #e3f2fd 100%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.container {
+  width: 100%;
+  max-width: 1100px;
+  text-align: center;
+}
+
+.header {
+  margin-bottom: 40px;
+}
+
+.title {
+  font-size: 36px;
+  font-weight: 800;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #e3f2fd;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.section {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0, 45, 98, 0.2);
+  text-align: left;
+}
+
+.sectionTitle {
+  font-size: 24px;
+  font-weight: 700;
+  color: #0d47a1;
+  margin-bottom: 25px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid #e3f2fd;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 25px;
+}
+
+.card {
+  background: #ffffff;
+  border: 1px solid #e1e8ed;
+  border-radius: 15px;
+  padding: 15px;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 20px rgba(13, 71, 161, 0.1);
+  border-color: #1976d2;
+}
+
+.image {
+  width: 100%;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.cardTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #263238;
+  margin: 0 0 8px 0;
+}
+
+.fatia {
+  font-size: 14px;
+  color: #546e7a;
+  font-weight: 600;
+  background: #f0f7ff;
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.button {
+  margin-top: auto;
+  background: linear-gradient(90deg, #0d47a1 0%, #1976d2 100%);
+  color: #ffffff;
+  border: none;
+  padding: 10px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.button:hover {
+  opacity: 0.9;
+}

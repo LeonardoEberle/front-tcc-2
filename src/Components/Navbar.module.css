@@ -1,0 +1,94 @@
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 40px;
+  /* Fundo predominantemente branco com um toque de azul no final */
+  background: linear-gradient(180deg, #ffffff 85%, #f0f7ff 100%);
+  backdrop-filter: blur(10px);
+  /* Linha fina azul na parte inferior para separar do conteúdo */
+  border-bottom: 2px solid #e3f2fd;
+  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  margin: 0; 
+}
+
+.logoArea {
+  display: flex;
+  align-items: center;
+}
+
+.logo {
+  height: 55px; 
+  cursor: pointer;
+}
+
+.links {
+  display: flex;
+  gap: 30px;
+  align-items: center;
+}
+
+.navLink {
+  text-decoration: none;
+  color: #0d47a1; /* Azul forte para leitura sobre o branco */
+  font-weight: 600;
+  font-size: 15px;
+  transition: all 0.2s ease;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+
+.navLink:hover {
+  color: #1976d2;
+  background-color: rgba(25, 118, 210, 0.05); /* Fundo azul clarinho no hover */
+}
+
+.actions {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.button {
+  padding: 10px 20px;
+  border: 2px solid #1976d2;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #1976d2;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.button:hover {
+  background: #f0f7ff;
+  transform: translateY(-1px);
+}
+
+/* Botão Sair com preenchimento azul para destaque */
+.logoutBtn {
+  background: linear-gradient(90deg, #0d47a1 0%, #1976d2 100%);
+  color: #ffffff;
+  border: none;
+}
+
+.logoutBtn:hover {
+  opacity: 0.9;
+  box-shadow: 0 4px 10px rgba(13, 71, 161, 0.2);
+}
+
+.popup {
+  position: absolute;
+  top: 65px;
+  right: 0;
+  width: 280px;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+  padding: 15px;
+  z-index: 1000;
+  border: 1px solid #e3f2fd;
+}

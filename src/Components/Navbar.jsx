@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import styles from './Navbar.module.css';
+import logo from '../assets/logo.png'; // Caminho da sua logo
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
@@ -9,83 +11,48 @@ function Navbar() {
     navigate('/login');
   };
 
-  const navStyle = {
-    display: 'flex',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    padding: '15px 10px',
-    borderBottom: '2px solid #000',
-    backgroundColor: '#fff',
-    marginBottom: '20px'
-  };
-
-  const linkStyle = {
-    textDecoration: 'none',
-    color: '#000', // Preto puro
-    padding: '8px 15px',
-    fontWeight: 'bold',
-    fontSize: '16px'
-  };
-
-  const buttonStyle = {
-    background: '#fff',
-    border: '2px solid #000',
-    color: '#000',
-    cursor: 'pointer',
-    padding: '8px 15px',
-    fontWeight: 'bold',
-    fontSize: '14px'
-  };
-
-  const logoutButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#000',
-    color: '#fff'
-  };
-
-  const popupStyle = {
-    position: 'absolute',
-    top: '60px',
-    right: '50px',
-    width: '280px',
-    backgroundColor: '#fff',
-    border: '2px solid #000',
-    padding: '15px',
-    zIndex: 1000,
-    boxShadow: '4px 4px 0px rgba(0,0,0,1)' // Sombra sólida estilo neobrutalismo
-  };
-
   return (
-    <nav style={navStyle}>
-      <Link to="/" style={linkStyle}>Home</Link>
-      <Link to="/ideias" style={linkStyle}>Ideias</Link>
-      <Link to="/minhas-ideias" style={linkStyle}>Minhas Ideias</Link>
-      
-      <div style={{ position: 'relative' }}>
-        <button 
-          onClick={() => setShowNotifications(!showNotifications)} 
-          style={buttonStyle}
-        >
-          Notificações
-        </button>
-        {showNotifications && (
-          <div style={popupStyle}>
-            <h4 style={{ margin: '0 0 10px 0', color: '#000', borderBottom: '1px solid #000' }}>Notificações</h4>
-            <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-              <li style={{ padding: '8px 0', color: '#000', fontSize: '14px' }}>Nenhuma notificação nova.</li>
-            </ul>
-            <button 
-              onClick={() => setShowNotifications(false)} 
-              style={{ ...buttonStyle, marginTop: '10px', width: '100%', backgroundColor: '#000', color: '#fff' }}
-            >
-              Fechar
-            </button>
-          </div>
-        )}
+    <nav className={styles.navbar}>
+      <div className={styles.logoArea}>
+        <Link to="/">
+          <img src={logo} alt="Logo" className={styles.logo} />
+        </Link>
       </div>
 
-      <Link to="/perfil" style={linkStyle}>Perfil</Link>
-      <button onClick={handleLogout} style={logoutButtonStyle}>Sair</button>
+      <div className={styles.links}>
+        <Link to="/" className={styles.navLink}>Home</Link>
+        <Link to="/ideias" className={styles.navLink}>Ideias</Link>
+        <Link to="/minhas-ideias" className={styles.navLink}>Minhas Ideias</Link>
+        <Link to="/perfil" className={styles.navLink}>Meu Perfil</Link>
+      </div>
+      
+      <div className={styles.actions}>
+        <div style={{ position: 'relative' }}>
+          <button 
+            onClick={() => setShowNotifications(!showNotifications)} 
+            className={styles.button}
+          >
+            Notificações
+          </button>
+          
+          {showNotifications && (
+            <div className={styles.popup}>
+              <h4 style={{ margin: '0 0 10px 0', color: '#0d47a1', borderBottom: '1px solid #eee' }}>
+                Notificações
+              </h4>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
+                <li style={{ padding: '8px 0', color: '#555', fontSize: '14px' }}>
+                  Nenhuma notificação nova.
+                </li>
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <button onClick={handleLogout} className={`${styles.button} styles.logoutBtn`}>
+          Sair
+        </button>
+      </div>
     </nav>
   );
 }
