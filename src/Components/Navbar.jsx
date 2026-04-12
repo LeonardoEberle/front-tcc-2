@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Bell, User, LogOut, Menu, X } from 'lucide-react'; 
 import styles from './Navbar.module.css';
-import logo from '../assets/logo.png'; // Caminho da sua logo
+import logo from '../assets/logo.png';
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
-  const handleLogout = () => {
-    navigate('/login');
-  };
+  const handleLogout = () => navigate('/login');
 
   return (
     <nav className={styles.navbar}>
@@ -19,38 +20,54 @@ function Navbar() {
         </Link>
       </div>
 
-      <div className={styles.links}>
-        <Link to="/" className={styles.navLink}>Home</Link>
-        <Link to="/ideias" className={styles.navLink}>Ideias</Link>
-        <Link to="/minhas-ideias" className={styles.navLink}>Minhas Ideias</Link>
-        <Link to="/perfil" className={styles.navLink}>Meu Perfil</Link>
+      <div className={`${styles.links} ${mobileMenuOpen ? styles.linksOpen : ''}`}>
+        <Link to="/" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Home</Link>
+        <Link to="/ideias" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Ideias</Link>
+        <Link to="/minhas-ideias" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Minhas Ideias</Link>
+        <Link to="/perfil" className={`${styles.navLink} ${styles.mobileOnly}`} onClick={() => setMobileMenuOpen(false)}>Meu Perfil</Link>
       </div>
       
       <div className={styles.actions}>
-        <div style={{ position: 'relative' }}>
+        {/* Ícone de Notificação Mantido */}
+        <div className={styles.iconWrapper}>
           <button 
             onClick={() => setShowNotifications(!showNotifications)} 
-            className={styles.button}
+            className={styles.iconButton}
           >
-            Notificações
+            <Bell size={22} />
+            {/* O Badge (bolinha vermelha) foi removido daqui */}
           </button>
           
-          {showNotifications && (
-            <div className={styles.popup}>
-              <h4 style={{ margin: '0 0 10px 0', color: '#0d47a1', borderBottom: '1px solid #eee' }}>
-                Notificações
-              </h4>
-              <ul style={{ listStyle: 'none', padding: 0, margin: 0 }}>
-                <li style={{ padding: '8px 0', color: '#555', fontSize: '14px' }}>
-                  Nenhuma notificação nova.
-                </li>
-              </ul>
-            </div>
-          )}
+          <AnimatePresence>
+            {showNotifications && (
+              <motion.div 
+                className={styles.popup}
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+              >
+                <div className={styles.popupHeader}>
+                  <h4>Notificações</h4>
+                </div>
+                <div className={styles.emptyState}>
+                  <p>Você não tem novas notificações no momento.</p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
-        <button onClick={handleLogout} className={`${styles.button} styles.logoutBtn`}>
-          Sair
+        <Link to="/perfil" className={`${styles.iconButton} ${styles.desktopOnly}`}>
+          <User size={22} />
+        </Link>
+
+        <button onClick={handleLogout} className={`${styles.logoutButton} ${styles.desktopOnly}`}>
+          <LogOut size={20} />
+          <span>Sair</span>
+        </button>
+
+        <button className={styles.menuMobile} onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+          {mobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
       </div>
     </nav>

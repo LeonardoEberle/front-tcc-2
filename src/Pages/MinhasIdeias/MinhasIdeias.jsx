@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Plus, Settings, Eye, Briefcase, Rocket, AlertCircle, CheckCircle } from 'lucide-react';
 import mockData from '../../mock_data.json';
 import noImage from '../../assets/noimage.jpg';
 import styles from './MinhasIdeias.module.css';
@@ -14,6 +15,11 @@ function MinhasIdeias() {
     setMinhasIdeias(filtradas);
   }, []);
 
+  const getStatusIcon = (status) => {
+    if (status === 'Ativo') return <CheckCircle size={14} />;
+    return <AlertCircle size={14} />;
+  };
+
   const getImageUrl = (imagePath) => {
     if (imagePath && imagePath.startsWith('http')) return imagePath;
     return noImage;
@@ -21,50 +27,65 @@ function MinhasIdeias() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.blob}></div>
+      
       <div className={styles.container}>
-        <div className={styles.header}>
-          <h1 className={styles.title}>Minhas Ideias</h1>
+        <header className={styles.header}>
+          <div className={styles.headerText}>
+            <div className={styles.titleWithIcon}>
+              <Briefcase size={32} className={styles.headerIcon} />
+              <h1>Meu Portfólio de Ideias</h1>
+            </div>
+            <p className={styles.subtitle}>Gerencie seus projetos e acompanhe o interesse de investidores.</p>
+          </div>
+          
           <button className={styles.btnNew} onClick={() => navigate('/criar-ideia')}>
-            + Nova Ideia
+            <Plus size={20} /> 
+            <span>Nova Ideia</span>
           </button>
-        </div>
+        </header>
 
         {minhasIdeias.length === 0 ? (
-          <p style={{ color: 'white', textAlign: 'center', marginTop: '50px' }}>
-            Você ainda não publicou nenhuma ideia.
-          </p>
+          <div className={styles.emptyState}>
+            <Rocket size={48} className={styles.emptyIcon} />
+            <h3>Nenhum projeto ainda</h3>
+            <p>Sua próxima grande ideia começa aqui. Publique seu primeiro pitch!</p>
+            <button className={styles.btnNewSmall} onClick={() => navigate('/criar-ideia')}>Criar agora</button>
+          </div>
         ) : (
           <div className={styles.grid}>
             {minhasIdeias.map((ideia) => (
-              <div key={ideia.ida_id} className={styles.card}>
-                <div className={styles.statusBadge}>{ideia.ida_status_nome}</div>
-                <img 
-                  src={getImageUrl(ideia.info.ida_info_imagem)} 
-                  alt={ideia.ida_nome} 
-                  className={styles.image} 
-                />
+              <article key={ideia.ida_id} className={styles.card}>
+                <div className={styles.imageContainer}>
+                  <img src={getImageUrl(ideia.info.ida_info_imagem)} alt={ideia.ida_nome} className={styles.image} />
+                  <div className={`${styles.statusBadge} ${ideia.ida_status_nome === 'Ativo' ? styles.statusAtivo : styles.statusPendente}`}>
+                    {getStatusIcon(ideia.ida_status_nome)}
+                    <span>{ideia.ida_status_nome}</span>
+                  </div>
+                </div>
+                
                 <div className={styles.content}>
                   <h2 className={styles.cardTitle}>{ideia.ida_nome}</h2>
-                  <p className={styles.fatiaInfo}>
-                    Fatia disponível: <strong>{ideia.info.ida_info_fatia}%</strong>
-                  </p>
                   
-                  <div className={styles.buttonGroup}>
-                    <button 
-                      className={styles.btnSecondary}
-                      onClick={() => navigate(`/editar-ideia/${ideia.ida_id}`)}
-                    >
-                      Editar
+                  <div className={styles.statsContainer}>
+                    <div className={styles.statBox}>
+                      <span className={styles.statLabel}>Fatia Disponível</span>
+                      <span className={styles.statValue}>{ideia.info.ida_info_fatia}%</span>
+                    </div>
+                  </div>
+                  
+                  <div className={styles.actionArea}>
+                    <button className={styles.btnSecondary} onClick={() => navigate(`/editar-ideia/${ideia.ida_id}`)}>
+                      <Settings size={18} />
+                      <span>Gerenciar</span>
                     </button>
-                    <button 
-                      className={styles.btnPrimary}
-                      onClick={() => navigate(`/ideia/${ideia.ida_id}`)}
-                    >
-                      Ver Detalhes
+                    <button className={styles.btnPrimary} onClick={() => navigate(`/ideia/${ideia.ida_id}`)}>
+                      <Eye size={18} />
+                      <span>Visualizar</span>
                     </button>
                   </div>
                 </div>
-              </div>
+              </article>
             ))}
           </div>
         )}
