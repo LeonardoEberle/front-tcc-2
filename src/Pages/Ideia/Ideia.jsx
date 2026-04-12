@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { ChevronLeft, PlayCircle, MessageSquare, Info, User, PieChart } from 'lucide-react';
 import mockData from '../../mock_data.json';
 import noImage from '../../assets/noimage.jpg';
 import styles from './Ideia.module.css';
@@ -39,48 +41,75 @@ function Ideia() {
 
   return (
     <div className={styles.page}>
+      <div className={styles.blob}></div>
+      
       <div className={styles.container}>
-        <div className={styles.header}>
-          <img 
-            src={getImageUrl(ideia.info.ida_info_imagem)} 
-            alt={ideia.ida_nome} 
-            className={styles.image} 
-          />
-          <div className={styles.mainInfo}>
-            <h1 className={styles.title}>{ideia.ida_nome}</h1>
-            <span className={styles.author}>
-              Por: <strong>{autor ? `${autor.usu_nome} ${autor.usu_sobrenome}` : 'Carregando...'}</strong>
-            </span>
-            <div className={styles.badge}>
-              <span style={{ fontSize: '12px', display: 'block', fontWeight: 400 }}>Fatia Disponível</span>
-              {ideia.info.ida_info_fatia}%
+        <button className={styles.backBtn} onClick={() => navigate(-1)}>
+          <ChevronLeft size={20} /> Voltar
+        </button>
+
+        <header className={styles.header}>
+          <div className={styles.imageWrapper}>
+            <img 
+              src={getImageUrl(ideia.info.ida_info_imagem)} 
+              alt={ideia.ida_nome} 
+              className={styles.image} 
+            />
+            <div className={styles.equityBadge}>
+              <PieChart size={16} />
+              <span>{ideia.info.ida_info_fatia}% Equity</span>
             </div>
           </div>
-        </div>
 
-        <div className={styles.section}>
-          <span className={styles.label}>Sobre o Projeto</span>
+          <div className={styles.mainInfo}>
+            <div className={styles.categoryBadge}>{ideia.ida_categoria_nome}</div>
+            <h1 className={styles.title}>{ideia.ida_nome}</h1>
+            <div className={styles.authorSection}>
+              <div className={styles.authorAvatar}>
+                <User size={20} />
+              </div>
+              <div className={styles.authorText}>
+                <span>Idealizador</span>
+                <strong>{autor ? `${autor.usu_nome} ${autor.usu_sobrenome}` : 'Carregando...'}</strong>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <section className={styles.descriptionSection}>
+          <div className={styles.sectionTitle}>
+            <Info size={20} />
+            <h2>Sobre o Negócio</h2>
+          </div>
           <p className={styles.description}>{ideia.info.ida_info_descricao}</p>
-        </div>
+        </section>
 
-        <div className={styles.actionsGrid}>
+        <footer className={styles.actionsArea}>
           <div className={styles.actionCard}>
-            <span className={styles.label}>Apresentação</span>
+            <div className={styles.cardHeader}>
+              <PlayCircle size={24} />
+              <h3>Pitch em Vídeo</h3>
+            </div>
+            <p>Assista à apresentação detalhada do projeto.</p>
             <button 
               onClick={() => window.open(ideia.info.ida_info_link_video, '_blank')}
               className={styles.buttonPrimary}
             >
-              Assistir Pitch no YouTube
+              Assistir no YouTube
             </button>
           </div>
 
           <div className={styles.actionCard}>
-            <span className={styles.label}>Interesse</span>
+            <div className={styles.cardHeader}>
+              <MessageSquare size={24} />
+              <h3>Negociação</h3>
+            </div>
+            <p>Ficou interessado? Entre em contato com o autor.</p>
             <button className={styles.buttonSecondary}>
-              Entrar em Contato
+              Enviar Mensagem
             </button>
           </div>
-        </div>
+        </footer>
       </div>
     </div>
   );

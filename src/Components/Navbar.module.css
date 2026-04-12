@@ -2,93 +2,181 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 40px;
-  /* Fundo predominantemente branco com um toque de azul no final */
-  background: linear-gradient(180deg, #ffffff 85%, #f0f7ff 100%);
+  padding: 0 5%;
+  height: 70px;
+  background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(10px);
-  /* Linha fina azul na parte inferior para separar do conteúdo */
-  border-bottom: 2px solid #e3f2fd;
-  box-shadow: 0 4px 12px rgba(13, 71, 161, 0.08);
+  border-bottom: 1px solid rgba(13, 71, 161, 0.1);
   position: sticky;
   top: 0;
   z-index: 1000;
-  margin: 0; 
-}
-
-.logoArea {
-  display: flex;
-  align-items: center;
 }
 
 .logo {
-  height: 55px; 
-  cursor: pointer;
+  height: 65px;
+  transition: transform 0.3s ease;
+}
+
+.logo:hover {
+  transform: scale(1.05);
 }
 
 .links {
   display: flex;
-  gap: 30px;
-  align-items: center;
+  gap: 20px;
 }
 
 .navLink {
   text-decoration: none;
-  color: #0d47a1; /* Azul forte para leitura sobre o branco */
-  font-weight: 600;
+  color: #455a64;
+  font-weight: 500;
   font-size: 15px;
-  transition: all 0.2s ease;
   padding: 8px 12px;
   border-radius: 8px;
+  transition: all 0.3s ease;
 }
 
 .navLink:hover {
-  color: #1976d2;
-  background-color: rgba(25, 118, 210, 0.05); /* Fundo azul clarinho no hover */
+  color: #0d47a1;
+  background: rgba(13, 71, 161, 0.05);
 }
 
 .actions {
   display: flex;
-  gap: 15px;
   align-items: center;
+  gap: 12px;
 }
 
-.button {
-  padding: 10px 20px;
-  border: 2px solid #1976d2;
-  border-radius: 12px;
-  background: #ffffff;
-  color: #1976d2;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.button:hover {
-  background: #f0f7ff;
-  transform: translateY(-1px);
-}
-
-/* Botão Sair com preenchimento azul para destaque */
-.logoutBtn {
-  background: linear-gradient(90deg, #0d47a1 0%, #1976d2 100%);
-  color: #ffffff;
+.iconButton {
+  background: none;
   border: none;
+  color: #0d47a1;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  transition: background 0.2s;
 }
 
-.logoutBtn:hover {
+.iconButton:hover {
+  background: rgba(13, 71, 161, 0.08);
+}
+
+.badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: #d32f2f;
+  color: white;
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.logoutButton {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #0d47a1;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.logoutButton:hover {
   opacity: 0.9;
-  box-shadow: 0 4px 10px rgba(13, 71, 161, 0.2);
+}
+
+/* Popup de Notificações */
+.iconWrapper {
+  position: relative;
 }
 
 .popup {
   position: absolute;
-  top: 65px;
+  top: 55px;
   right: 0;
-  width: 280px;
+  width: 260px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-  padding: 15px;
-  z-index: 1000;
-  border: 1px solid #e3f2fd;
+  box-shadow: 0 10px 30px rgba(0, 45, 98, 0.15);
+  border: 1px solid rgba(13, 71, 161, 0.1);
+  z-index: 1001;
+  overflow: hidden;
+}
+
+.popupHeader {
+  padding: 12px 15px;
+  background: #f8fbff;
+  border-bottom: 1px solid #eee;
+}
+
+.popupHeader h4 {
+  margin: 0;
+  font-size: 14px;
+  color: #0d47a1;
+}
+
+.emptyState {
+  padding: 20px 15px;
+  text-align: center;
+  font-size: 13px;
+  color: #94a3b8;
+}
+.notificationList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.notificationList li {
+  padding: 12px 15px;
+  font-size: 13px;
+  color: #555;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.notificationList li:hover {
+  background: #fcfdff;
+}
+
+/* Responsividade Mobile */
+.menuMobile {
+  display: none;
+  background: none;
+  border: none;
+  color: #0d47a1;
+  cursor: pointer;
+}
+
+.mobileOnly { display: none; }
+
+@media (max-width: 850px) {
+  .desktopOnly { display: none; }
+  .menuMobile { display: block; }
+  .mobileOnly { display: block; }
+
+  .links {
+    position: fixed;
+    top: 70px;
+    left: -100%;
+    flex-direction: column;
+    background: white;
+    width: 100%;
+    height: calc(100vh - 70px);
+    padding: 40px;
+    transition: left 0.4s ease;
+  }
+
+  .linksOpen {
+    left: 0;
+  }
 }

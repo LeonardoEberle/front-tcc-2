@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { motion } from 'framer-motion'; // Animações
+import toast, { Toaster } from 'react-hot-toast'; // Popups
 import styles from './Cadastro.module.css';
-import logo from '../../assets/logo.png'; // Certifique-se que o caminho está correto
+import logo from '../../assets/logo.png';
 
 function Cadastro() {
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({
     usu_nome: '',
-    usu_sobrenome: '',
     usu_cpf: '',
     usu_email: '',
     usu_telefone: '',
@@ -24,33 +25,48 @@ function Cadastro() {
 
   const handleRegister = (e) => {
     e.preventDefault();
+    
+    // Validação de Senha
     if (formData.usu_senha !== formData.confirmar_senha) {
-      alert('As senhas não coincidem!');
+      toast.error('As senhas não coincidem!');
       return;
     }
-    console.log('Dados para a API:', formData);
-    alert('Cadastro realizado com sucesso!');
-    navigate('/login');
+
+    // Feedback de Sucesso
+    toast.success('Cadastro realizado com sucesso!');
+
+    console.log('Dados enviados:', formData);
+    
+    // Pequeno delay para o usuário ler a mensagem antes de mudar de tela
+    setTimeout(() => navigate('/login'), 2000);
   };
 
   return (
     <div className={styles.page}>
-      <div className={styles.container}>
+      <Toaster position="top-center" />
+
+      <motion.div 
+        className={styles.container}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5 }}
+      >
         <div className={styles.header}>
           <img src={logo} alt="Logo" className={styles.logo} />
-          <h1 className={styles.title}>Crie sua conta</h1>
+          <h1 className={styles.title}>Criar Conta</h1>
           <p className={styles.subtitle}>Preencha os dados abaixo para começar</p>
         </div>
 
         <form onSubmit={handleRegister}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Nome</label>
+            <label className={styles.label}>Nome Completo</label>
             <input 
               type="text" 
               name="usu_nome" 
               className={styles.input} 
               value={formData.usu_nome} 
               onChange={handleChange} 
+              placeholder="Digite seu nome"
               required 
             />
           </div>
@@ -63,6 +79,33 @@ function Cadastro() {
               className={styles.input} 
               value={formData.usu_email} 
               onChange={handleChange} 
+              placeholder="seu@email.com"
+              required 
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>CPF</label>
+            <input 
+              type="text" 
+              name="usu_cpf" 
+              className={styles.input} 
+              value={formData.usu_cpf} 
+              onChange={handleChange} 
+              placeholder="000.000.000-00"
+              required 
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Telefone</label>
+            <input 
+              type="text" 
+              name="usu_telefone" 
+              className={styles.input} 
+              value={formData.usu_telefone} 
+              onChange={handleChange} 
+              placeholder="(00) 00000-0000"
               required 
             />
           </div>
@@ -75,6 +118,7 @@ function Cadastro() {
               className={styles.input} 
               value={formData.usu_senha} 
               onChange={handleChange} 
+              placeholder="No mínimo 6 caracteres"
               required 
             />
           </div>
@@ -87,6 +131,7 @@ function Cadastro() {
               className={styles.input} 
               value={formData.confirmar_senha} 
               onChange={handleChange} 
+              placeholder="Repita a senha"
               required 
             />
           </div>
@@ -104,15 +149,22 @@ function Cadastro() {
             </select>
           </div>
 
-          <button type="submit" className={styles.button}>
+          <motion.button 
+            type="submit" 
+            className={styles.button}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+          >
             Finalizar Cadastro
-          </button>
+          </motion.button>
         </form>
 
         <div className={styles.linkArea}>
-          <p>Já tem uma conta? <Link to="/login" className={styles.link}>Entrar</Link></p>
+          <p className={styles.registerText}>
+            Já tem uma conta? <Link to="/login" className={styles.linkHighlight}>Entrar</Link>
+          </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   );
 }
