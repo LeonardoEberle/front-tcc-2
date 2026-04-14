@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Settings, Eye, Briefcase, Rocket, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Briefcase, Rocket } from 'lucide-react';
 import mockData from '../../mock_data.json';
-import noImage from '../../assets/noimage.jpg';
+import IdeiaCard from '../../Components/IdeiaCard/IdeiaCard';
 import styles from './MinhasIdeias.module.css';
 
 function MinhasIdeias() {
@@ -14,16 +14,6 @@ function MinhasIdeias() {
     const filtradas = mockData.ideias.filter(ideia => ideia.ida_usuario_id === USUARIO_LOGADO_ID);
     setMinhasIdeias(filtradas);
   }, []);
-
-  const getStatusIcon = (status) => {
-    if (status === 'Ativo') return <CheckCircle size={14} />;
-    return <AlertCircle size={14} />;
-  };
-
-  const getImageUrl = (imagePath) => {
-    if (imagePath && imagePath.startsWith('http')) return imagePath;
-    return noImage;
-  };
 
   return (
     <div className={styles.page}>
@@ -55,37 +45,13 @@ function MinhasIdeias() {
         ) : (
           <div className={styles.grid}>
             {minhasIdeias.map((ideia) => (
-              <article key={ideia.ida_id} className={styles.card}>
-                <div className={styles.imageContainer}>
-                  <img src={getImageUrl(ideia.info.ida_info_imagem)} alt={ideia.ida_nome} className={styles.image} />
-                  <div className={`${styles.statusBadge} ${ideia.ida_status_nome === 'Ativo' ? styles.statusAtivo : styles.statusPendente}`}>
-                    {getStatusIcon(ideia.ida_status_nome)}
-                    <span>{ideia.ida_status_nome}</span>
-                  </div>
-                </div>
-                
-                <div className={styles.content}>
-                  <h2 className={styles.cardTitle}>{ideia.ida_nome}</h2>
-                  
-                  <div className={styles.statsContainer}>
-                    <div className={styles.statBox}>
-                      <span className={styles.statLabel}>Fatia Disponível</span>
-                      <span className={styles.statValue}>{ideia.info.ida_info_fatia}%</span>
-                    </div>
-                  </div>
-                  
-                  <div className={styles.actionArea}>
-                    <button className={styles.btnSecondary} onClick={() => navigate(`/editar-ideia/${ideia.ida_id}`)}>
-                      <Settings size={18} />
-                      <span>Gerenciar</span>
-                    </button>
-                    <button className={styles.btnPrimary} onClick={() => navigate(`/ideia/${ideia.ida_id}`)}>
-                      <Eye size={18} />
-                      <span>Visualizar</span>
-                    </button>
-                  </div>
-                </div>
-              </article>
+              <IdeiaCard 
+                key={ideia.ida_id} 
+                ideia={ideia} 
+                variant="owner"
+                onAction={() => navigate(`/ideia/${ideia.ida_id}`)}
+                onSecondaryAction={() => navigate(`/editar-ideia/${ideia.ida_id}`)}
+              />
             ))}
           </div>
         )}

@@ -10,6 +10,7 @@ import MinhasIdeias from './Pages/MinhasIdeias/MinhasIdeias.jsx';
 import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia/Ideia.jsx';
 import EditarIdeia from './Pages/EditarIdeia/EditarIdeia.jsx';
+import Propostas from './Pages/Propostas/Propostas.jsx';
 import './App.css';
 
 function Layout({ children }) {
@@ -41,6 +42,7 @@ function App() {
           <Route path="/perfil" element={<Perfil />} />
           <Route path="/ideia/:id" element={<Ideia />} />
           <Route path="/editar-ideia/:id" element={<EditarIdeia />} />
+          <Route path="/propostas/:ideiaId" element={<Propostas />} />
         </Routes>
       </Layout>
     </Router>

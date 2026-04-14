@@ -131,21 +131,47 @@
   font-size: 13px;
   color: #94a3b8;
 }
+
 .notificationList {
-  list-style: none;
-  padding: 0;
-  margin: 0;
+  max-height: 300px;
+  overflow-y: auto;
 }
 
-.notificationList li {
+.notificationItem {
   padding: 12px 15px;
-  font-size: 13px;
-  color: #555;
-  border-bottom: 1px solid #f5f5f5;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.2s;
 }
 
-.notificationList li:hover {
-  background: #fcfdff;
+.notificationItem:hover {
+  background: #f8fafc;
+}
+
+.ntfMessage {
+  margin: 0;
+  font-size: 13px;
+  color: #1e293b;
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.ntfDate {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 4px;
+  display: block;
+}
+
+.badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 10px;
+  height: 10px;
+  background: #ef4444;
+  border-radius: 50%;
+  border: 2px solid #fff;
 }
 
 /* Responsividade Mobile */

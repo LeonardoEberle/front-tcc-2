@@ -5,12 +5,24 @@ import { Bell, User, LogOut, Menu, X } from 'lucide-react';
 import styles from './Navbar.module.css';
 import logo from '../assets/logo.png';
 
+import mockData from '../mock_data.json';
+
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
 
+  // Simulando usuário logado (João Silva)
+  const USUARIO_LOGADO_ID = 1;
+  const notificacoes = mockData.notificacoes.filter(n => n.ntf_usuario_id === USUARIO_LOGADO_ID);
+  const temNotificacoesNaoLidas = notificacoes.some(n => !n.ntf_lida);
+
   const handleLogout = () => navigate('/login');
+
+  const handleNotificationClick = (targetId) => {
+    setShowNotifications(false);
+    navigate(`/propostas/${targetId}`);
+  };
 
   return (
     <nav className={styles.navbar}>
@@ -35,7 +47,7 @@ function Navbar() {
             className={styles.iconButton}
           >
             <Bell size={22} />
-            {/* O Badge (bolinha vermelha) foi removido daqui */}
+            {temNotificacoesNaoLidas && <span className={styles.badge} />}
           </button>
           
           <AnimatePresence>
@@ -49,8 +61,25 @@ function Navbar() {
                 <div className={styles.popupHeader}>
                   <h4>Notificações</h4>
                 </div>
-                <div className={styles.emptyState}>
-                  <p>Você não tem novas notificações no momento.</p>
+                <div className={styles.notificationList}>
+                  {notificacoes.length > 0 ? (
+                    notificacoes.map(n => (
+                      <div 
+                        key={n.ntf_id} 
+                        className={styles.notificationItem}
+                        onClick={() => handleNotificationClick(n.target_id)}
+                      >
+                        <p className={styles.ntfMessage}>{n.ntf_mensagem}</p>
+                        <span className={styles.ntfDate}>
+                          {new Date(n.ntf_create_date).toLocaleDateString('pt-BR')}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className={styles.emptyState}>
+                      <p>Você não tem novas notificações no momento.</p>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}

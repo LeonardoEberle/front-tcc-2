@@ -150,5 +150,33 @@
         "ida_info_link_video": "https://www.youtube.com/watch?v=unfq0qpzExU"
       }
     }
+  ],
+  "notificacoes": [
+    {
+      "ntf_id": 1,
+      "ntf_usuario_id": 1,
+      "ntf_tipo_id": 1,
+      "ntf_tipo_nome": "Nova Proposta",
+      "ntf_mensagem": "Você recebeu uma nova proposta para a ideia 'EcoEnergia Residencial'!",
+      "ntf_lida": false,
+      "ntf_create_date": "2024-03-20T10:00:00Z",
+      "target_id": 101
+    }
+  ],
+  "propostas": [
+    {
+      "prp_id": 1,
+      "prp_ideia_id": 101,
+      "prp_usuario_id": 4,
+      "prp_status": true,
+      "prp_aceite_id": 3,
+      "prp_aceite_nome": "Pendente",
+      "info": {
+        "prp_info_mensagem": "Olá João, gostei muito do seu projeto de energia solar. Gostaria de investir para acelerar a produção das placas.",
+        "prp_info_valor": 150000,
+        "prp_info_fatia_pret": 10,
+        "prp_info_create_date": "2024-03-20T10:00:00Z"
+      }
+    }
   ]
 }
