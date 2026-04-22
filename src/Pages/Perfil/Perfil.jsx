@@ -4,7 +4,7 @@ import styles from './Perfil.module.css';
 import mockData from '../../mock_data.json';
 
 function Perfil() {
-  const joao = mockData.usuarios.find(u => u.usu_id === 1);
+  const joao = mockData.usuarios.find(u => u.usu_id === 2);
   
   const [formData, setFormData] = useState({
     usu_nome: joao.usu_nome,
