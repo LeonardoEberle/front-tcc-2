@@ -13,31 +13,16 @@ function Navbar() {
 
   const getToken = () => localStorage.getItem('token');
 
-  const getUserId = () => {
-    try {
-      const payload = JSON.parse(atob(getToken().split('.')[1]));
-      return (
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ||
-        payload['sub'] ||
-        payload['nameid']
-      );
-    } catch { return null; }
-  };
-
   const fetchNotificacoes = useCallback(async () => {
     const token = getToken();
     if (!token) return;
     try {
-      const response = await fetch('/api/notificacoes', {
+      const response = await fetch('/api/notificacoes/minhas', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (response.ok) {
         const data = await response.json();
-        const userId = getUserId();
-        const minhas = data.filter(n =>
-          String(n.ntfUsuarioId ?? n.usuarioId ?? n.ntf_usuario_id) === String(userId)
-        );
-        setNotificacoes(minhas);
+        setNotificacoes(data);
       }
     } catch {}
   }, []);
@@ -48,26 +33,23 @@ function Navbar() {
     return () => clearInterval(interval);
   }, [fetchNotificacoes]);
 
-  const temNaoLidas = notificacoes.some(n => !(n.ntfLida ?? n.ntf_lida ?? false));
+  const temNaoLidas = notificacoes.some(n => !n.lida);
 
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
     try {
-      const ntfId = notificacao.ntfId ?? notificacao.id ?? notificacao.ntf_id;
-      if (ntfId) {
-        await fetch(`/api/notificacoes/${ntfId}/lida`, {
-          method: 'PUT',
+      if (notificacao.ntfId) {
+        await fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
+          method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
         setNotificacoes(prev =>
-          prev.map(n => (n.ntfId ?? n.id) === ntfId ? { ...n, ntfLida: true } : n)
+          prev.map(n => n.ntfId === notificacao.ntfId ? { ...n, lida: true } : n)
         );
       }
     } catch {}
 
     setShowNotifications(false);
-    const ideiaId = notificacao.ntfIdeiaId ?? notificacao.ideiaId ?? notificacao.target_id;
-    if (ideiaId) navigate(`/propostas/${ideiaId}`);
   };
 
   const handleLogout = () => {
@@ -122,27 +104,21 @@ function Navbar() {
                   <p className={styles.emptyState}>Você não tem novas notificações no momento.</p>
                 ) : (
                   <ul className={styles.notificationList}>
-                    {notificacoes.map((n, i) => {
-                      const ntfId = n.ntfId ?? n.id ?? i;
-                      const lida  = n.ntfLida ?? n.ntf_lida ?? false;
-                      const msg   = n.ntfMensagem ?? n.mensagem ?? n.ntf_mensagem ?? 'Nova notificação';
-                      const data  = n.ntfCreateDate ?? n.createDate ?? n.ntf_create_date;
-                      return (
+                    {notificacoes.map((n) => (
                         <li
-                          key={ntfId}
+                          key={n.ntfId}
                           className={styles.notificationItem}
-                          style={{ background: !lida ? '#f0f7ff' : undefined }}
+                          style={{ background: !n.lida ? '#f0f7ff' : undefined }}
                           onClick={() => handleNotificationClick(n)}
                         >
-                          <p className={styles.ntfMessage}>{msg}</p>
-                          {data && (
+                          <p className={styles.ntfMessage}>{n.mensagem}</p>
+                          {n.createDate && (
                             <span className={styles.ntfDate}>
-                              {new Date(data).toLocaleDateString('pt-BR')}
+                              {new Date(n.createDate).toLocaleDateString('pt-BR')}
                             </span>
                           )}
                         </li>
-                      );
-                    })}
+                      ))}
                   </ul>
                 )}
               </motion.div>

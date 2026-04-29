@@ -17,7 +17,7 @@ function Cadastro() {
     telefone: '',
     senha: '',
     confirmar_senha: '',
-    cargoNome: 'Empreendedor' // Valor padrão (string conforme o back espera)
+    cargoNome: 'empreendedor'
   });
 
   const handleChange = (e) => {
@@ -177,8 +177,8 @@ function Cadastro() {
               value={formData.cargoNome} 
               onChange={handleChange}
             >
-              <option value="Empreendedor">Empreendedor (ME)</option>
-              <option value="Investidor">Investidor</option>
+              <option value="empreendedor">Empreendedor (ME)</option>
+              <option value="investidor">Investidor</option>
             </select>
           </div>
 

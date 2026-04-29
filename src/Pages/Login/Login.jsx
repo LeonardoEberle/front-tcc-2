@@ -51,21 +51,21 @@ function Login() {
         if (response.ok) {
           const data = await response.json();
 
-          // Salva o token
           localStorage.setItem("token", data.token);
 
-          // Decodifica o JWT para extrair o id do usuário
           const payload = JSON.parse(atob(data.token.split(".")[1]));
           const userId =
             payload[
               "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier"
             ];
 
-          // Salva o user com o id extraído do token
           localStorage.setItem("user", JSON.stringify({ id: userId }));
 
           toast.success("Login bem-sucedido!", { id: toastId });
-          setTimeout(() => navigate("/home"), 1500);
+          setTimeout(() => navigate("/"), 1500);
+        } else {
+          const errorData = await response.json().catch(() => ({}));
+          toast.error(errorData.message || "Credenciais inválidas.", { id: toastId });
         }
       } catch (error) {
         toast.error(
