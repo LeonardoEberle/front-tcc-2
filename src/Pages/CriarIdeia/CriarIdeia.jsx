@@ -148,15 +148,29 @@ function CriarIdeia() {
 
             <div className={styles.formGroup}>
               <label className={styles.label}>Categoria *</label>
-              <input
-                type="number"
+              <select
                 name="categoriaId"
                 value={formData.categoriaId}
                 onChange={handleChange}
                 className={`${styles.input} ${erros.categoriaId ? styles.inputError : ''}`}
-                placeholder="ID da categoria"
-                min="1"
-              />
+              >
+                <option value="">Selecione uma categoria</option>
+                <option value="1">Tecnologia</option>
+                <option value="2">Agro</option>
+                <option value="3">Inovação</option>
+                <option value="4">Infraestrutura</option>
+                <option value="5">Moda</option>
+                <option value="6">Automobilismo</option>
+                <option value="7">Sustentabilidade</option>
+                <option value="8">Comodidade</option>
+                <option value="9">Lazer</option>
+                <option value="10">Uso Diário</option>
+                <option value="11">Moradia</option>
+                <option value="12">Energia</option>
+                <option value="13">Marítimo</option>
+                <option value="14">Aeronáutico</option>
+                <option value="15">Outros</option>
+              </select>
               {erros.categoriaId && <span className={styles.error}>{erros.categoriaId}</span>}
             </div>
           </div>
