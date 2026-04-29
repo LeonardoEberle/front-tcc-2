@@ -1,58 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Compass, Star, ChevronRight } from 'lucide-react'; 
-import mockData from '../../mock_data.json';
+import { Compass, Star, ChevronRight, Rocket } from 'lucide-react';
 import IdeiaCard from '../../Components/IdeiaCard/IdeiaCard';
 import styles from './Dashboard.module.css';
 
 function Dashboard() {
-  const [randomIdeias, setRandomIdeias] = useState([]);
+  const [destaques, setDestaques] = useState([]);
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const shuffled = [...mockData.ideias].sort(() => 0.5 - Math.random());
-    setRandomIdeias(shuffled.slice(0, 4));
+    const fetchIdeias = async () => {
+      const token = localStorage.getItem('token');
+
+      try {
+        const response = await fetch('/api/ideias', {
+          method: 'GET',
+          headers: {
+            Authorization: token ? `Bearer ${token}` : '',
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) throw new Error('Falha ao buscar ideias');
+
+        const data = await response.json();
+
+        // Embaralha e pega as 4 primeiras para exibir como destaques
+        const embaralhadas = [...data].sort(() => 0.5 - Math.random());
+        setDestaques(embaralhadas.slice(0, 4));
+      } catch (error) {
+        console.error('Erro ao buscar ideias:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchIdeias();
   }, []);
 
   return (
     <div className={styles.page}>
-      <div className={styles.blob}></div>
-      
-      <div className={styles.container}>
-        <header className={styles.header}>
-          <div className={styles.welcomeText}>
-            <h1 className={styles.title}>
-              <Compass className={styles.headerIcon} size={36} />
-              <span>Descobrir Ideias</span>
-            </h1>
-            <p className={styles.subtitle}>As mentes mais brilhantes prontas para o próximo passo.</p>
-          </div>
-        </header>
+      <div className={styles.blob} />
 
-        <section className={styles.section}>
+      <div className={styles.container}>
+        {/* Header */}
+        <div className={styles.header}>
+          <p className={styles.highlight}>Bem-vindo</p>
+          <p className={styles.subtitle}>
+            Conectando empreendedores e investidores que transformam ideias em realidade.
+          </p>
+        </div>
+
+        {/* Seção de destaques */}
+        <div className={styles.section}>
           <div className={styles.sectionHeader}>
-            <h3 className={styles.sectionTitle}>
-              <div className={styles.starCircle}>
-                <Star size={18} fill="#f59e0b" color="#f59e0b" />
-              </div>
-              <span>Curadoria <span className={styles.highlight}>Shark</span></span>
-            </h3>
+            <h2 className={styles.sectionTitle}>
+              <span className={styles.starCircle}>
+                <Star size={18} color="#f59e0b" fill="#f59e0b" />
+              </span>
+              Ideias em Destaque
+            </h2>
             <button className={styles.viewAll} onClick={() => navigate('/ideias')}>
-              Explorar tudo <ChevronRight size={16} />
+              Ver todas <ChevronRight size={16} />
             </button>
           </div>
 
-          <div className={styles.grid}>
-            {randomIdeias.map(ideia => (
-              <IdeiaCard 
-                key={ideia.ida_id} 
-                ideia={ideia} 
-                variant="dashboard" 
-                onAction={() => navigate(`/ideia/${ideia.ida_id}`)}
-              />
-            ))}
-          </div>
-        </section>
+          {/* Loading */}
+          {loading && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+              <Rocket size={40} opacity={0.3} />
+              <p style={{ marginTop: 12 }}>Carregando ideias...</p>
+            </div>
+          )}
+
+          {/* Sem ideias */}
+          {!loading && destaques.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
+              <Rocket size={40} opacity={0.3} />
+              <p style={{ marginTop: 12 }}>Nenhuma ideia cadastrada ainda.</p>
+            </div>
+          )}
+
+          {/* Grid de cards */}
+          {!loading && destaques.length > 0 && (
+            <div className={styles.grid}>
+              {destaques.map((ideia) => (
+                <IdeiaCard
+                  key={ideia.idaId}
+                  ideia={ideia}
+                  variant="default"
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

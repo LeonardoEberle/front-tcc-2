@@ -11,7 +11,9 @@ import Perfil from './Pages/Perfil/Perfil.jsx';
 import Ideia from './Pages/Ideia/Ideia.jsx';
 import EditarIdeia from './Pages/EditarIdeia/EditarIdeia.jsx';
 import Propostas from './Pages/Propostas/Propostas.jsx';
+import CriarIdeia from './Pages/CriarIdeia/CriarIdeia.jsx'; // 👈 importado
 import './App.css';
+
 
 function Layout({ children }) {
   const location = useLocation();
@@ -28,6 +30,7 @@ function Layout({ children }) {
   );
 }
 
+
 function App() {
   return (
     <Router>
@@ -43,10 +46,12 @@ function App() {
           <Route path="/ideia/:id" element={<Ideia />} />
           <Route path="/editar-ideia/:id" element={<EditarIdeia />} />
           <Route path="/propostas/:ideiaId" element={<Propostas />} />
+          <Route path="/criar-ideia" element={<CriarIdeia />} /> {/* 👈 adicionado */}
         </Routes>
       </Layout>
     </Router>
   );
 }
+
 
 export default App;

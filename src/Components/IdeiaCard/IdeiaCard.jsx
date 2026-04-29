@@ -1,104 +1,137 @@
 import React from 'react';
-import { Lightbulb, Rocket, Star, Eye, Settings, CheckCircle, AlertCircle } from 'lucide-react';
-import noImage from '../../assets/noimage.jpg';
+import { useNavigate } from 'react-router-dom';
+import { Rocket, Star, Eye, Edit2, TrendingUp } from 'lucide-react';
 import styles from './IdeiaCard.module.css';
 
-/**
- * Componente reutilizável de Card para exibir ideias.
- * 
- * @param {Object} ideia - Dados da ideia.
- * @param {string} variant - Variação do card ('default', 'dashboard', 'owner').
- * @param {function} onAction - Callback para ação principal.
- * @param {function} onSecondaryAction - Callback para ação secundária (variante 'owner').
- */
-function IdeiaCard({ ideia, variant = 'default', onAction, onSecondaryAction }) {
-  const getImageUrl = (imagePath) => {
-    if (imagePath && imagePath.startsWith('http')) return imagePath;
-    return noImage;
-  };
+// ⚠️ Ajuste a rota abaixo conforme o seu App.jsx:
+// Ex: '/ideia/:id'  → ROTA_IDEIA = '/ideia'
+// Ex: '/ideias/:id' → ROTA_IDEIA = '/ideias'
+const ROTA_IDEIA = '/ideia';
+const ROTA_EDITAR = '/editar-ideia'; // ajuste se necessário
 
-  const getStatusIcon = (status) => {
-    if (status === 'Ativo') return <CheckCircle size={14} />;
-    return <AlertCircle size={14} />;
-  };
+// variant: 'default' | 'owner' | 'dashboard'
+function IdeiaCard({ ideia, variant = 'default' }) {
+  const navigate = useNavigate();
 
-  const renderBadge = () => {
-    if (variant === 'dashboard') {
-      return <span className={styles.equityBadge}>{ideia.info.ida_info_fatia}% Equity</span>;
-    }
-    if (variant === 'default') {
-      return (
-        <div className={styles.featuredBadge} title="Destaque Curadoria Shark">
-          <Star size={18} fill="#fff" color="#fff" />
-        </div>
-      );
-    }
-    if (variant === 'owner') {
-      return (
-        <div className={`${styles.statusBadge} ${ideia.ida_status_nome === 'Ativo' ? styles.statusAtivo : styles.statusPendente}`}>
-          {getStatusIcon(ideia.ida_status_nome)}
-          <span>{ideia.ida_status_nome}</span>
-        </div>
-      );
-    }
-    return null;
-  };
+  if (!ideia) return null;
+
+  const id        = ideia.idaId;
+  const nome      = ideia.idaNome;
+  const categoria = ideia.categoriaNome;
+  const statusId  = ideia.idaStatusId;
+  const statusNome = ideia.statusNome;
+
+  const info      = ideia.info ?? {};
+  const descricao = info.idaInfoDescricao;
+  const imagem    = info.idaInfoImagem;
+  const fatia     = info.idaInfoFatia;
+
+  const isAtivo =
+    statusId === 1 ||
+    String(statusNome ?? '').toLowerCase().includes('ativ');
+
+  const irParaIdeia = () => navigate(`${ROTA_IDEIA}/${id}`);
+  const irParaEditar = () => navigate(`${ROTA_EDITAR}/${id}`);
 
   return (
-    <article className={`${styles.card} ${styles[variant]}`}>
+    <div className={`${styles.card} ${variant === 'dashboard' ? styles.dashboard : ''}`}>
+      {/* Imagem */}
       <div className={styles.imageWrapper}>
-        <img 
-          src={getImageUrl(ideia.info.ida_info_imagem)} 
-          alt={ideia.ida_nome} 
-          className={styles.image} 
-        />
-        {renderBadge()}
-      </div>
-      
-      <div className={styles.content}>
-        <div className={styles.cardHeaderInfo}>
-          <Lightbulb size={16} className={styles.cardIcon} />
-          <h3 className={styles.cardTitle}>{ideia.ida_nome}</h3>
-        </div>
-        
-        <p className={styles.description}>
-          {variant === 'owner' 
-            ? 'Gerencie seu projeto e acompanhe o interesse de investidores.'
-            : 'Um pitch resumido sobre a inovação e o mercado para engajar o investidor...'}
-        </p>
-        
-        {variant !== 'dashboard' && (
-          <div className={styles.equityInfo}>
-            <span>Equity Disponível:</span>
-            <strong>{ideia.info.ida_info_fatia}%</strong>
+        {imagem ? (
+          <img src={imagem} alt={nome} className={styles.image} loading="lazy" />
+        ) : (
+          <div
+            className={styles.image}
+            style={{
+              background: 'linear-gradient(135deg, #e8f0fe 0%, #c7d9f8 100%)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Rocket size={variant === 'dashboard' ? 36 : 48} color="#0d47a1" opacity={0.25} />
           </div>
         )}
 
-        {variant === 'dashboard' && (
-          <p className={styles.equitySimple}>Fatia: {ideia.info.ida_info_fatia}%</p>
+        {/* Badge equity */}
+        {fatia != null && fatia > 0 && variant !== 'dashboard' && (
+          <span className={styles.equityBadge}>Fatia: {fatia}%</span>
         )}
-        
+
+        {/* Badge status — variante owner/dashboard */}
+        {variant !== 'default' && (
+          <span
+            className={`${styles.statusBadge} ${isAtivo ? styles.statusAtivo : styles.statusPendente}`}
+          >
+            <span
+              style={{
+                width: 7,
+                height: 7,
+                borderRadius: '50%',
+                background: 'rgba(255,255,255,0.9)',
+                display: 'inline-block',
+              }}
+            />
+            {statusNome ?? (isAtivo ? 'Ativo' : 'Pendente')}
+          </span>
+        )}
+
+        {/* Estrela — variante default */}
+        {variant === 'default' && (
+          <div className={styles.featuredBadge}>
+            <Star size={16} color="white" fill="white" />
+          </div>
+        )}
+      </div>
+
+      {/* Conteúdo */}
+      <div className={styles.content}>
+        <div className={styles.cardHeaderInfo}>
+          <TrendingUp size={18} className={styles.cardIcon} />
+          <h3 className={styles.cardTitle}>{nome ?? '(sem título)'}</h3>
+        </div>
+
+        {categoria && (
+          <span className={styles.equitySimple}>{categoria}</span>
+        )}
+
+        <p className={styles.description}>
+          {descricao
+            ? descricao
+            : variant === 'owner'
+            ? 'Gerencie seu projeto e acompanhe o interesse de investidores.'
+            : 'Um pitch resumido sobre a inovação e o mercado para engajar o investidor.'}
+        </p>
+
+        {fatia != null && fatia > 0 && variant !== 'dashboard' && (
+          <div className={styles.equityInfo}>
+            <span>Participação ofertada</span>
+            <strong>{fatia}%</strong>
+          </div>
+        )}
+
+        {/* Ações */}
         <div className={styles.actionArea}>
           {variant === 'owner' ? (
             <>
-              <button className={styles.btnSecondary} onClick={onSecondaryAction}>
-                <Settings size={18} />
-                <span>Gerenciar</span>
+              <button className={styles.btnPrimary} onClick={irParaIdeia}>
+                <Eye size={15} />
+                Ver
               </button>
-              <button className={styles.btnPrimary} onClick={onAction}>
-                <Eye size={18} />
-                <span>Visualizar</span>
+              <button className={styles.btnSecondary} onClick={irParaEditar}>
+                <Edit2 size={15} />
+                Editar
               </button>
             </>
           ) : (
-            <button className={styles.cardButton} onClick={onAction}>
-              <span>{variant === 'dashboard' ? 'Ver Pitch' : 'Analisar Oportunidade'}</span>
-              <Rocket size={18} />
+            <button className={styles.cardButton} onClick={irParaIdeia}>
+              <Eye size={16} />
+              Ver Pitch
             </button>
           )}
         </div>
       </div>
-    </article>
+    </div>
   );
 }
 

@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion'; // Animações
-import toast, { Toaster } from 'react-hot-toast'; // Popups
+import { motion } from 'framer-motion';
+import toast, { Toaster } from 'react-hot-toast';
 import styles from './Cadastro.module.css';
 import logo from '../../assets/logo.png';
 
 function Cadastro() {
   const navigate = useNavigate();
   
+  // Estado ajustado para os campos do back-end
   const [formData, setFormData] = useState({
-    usu_nome: '',
-    usu_cpf: '',
-    usu_email: '',
-    usu_telefone: '',
-    usu_senha: '',
+    nome: '',
+    sobrenome: '',
+    cpf: '',
+    email: '',
+    telefone: '',
+    senha: '',
     confirmar_senha: '',
-    usu_cargo_id: '2'
+    cargoNome: 'Empreendedor' // Valor padrão (string conforme o back espera)
   });
 
   const handleChange = (e) => {
@@ -23,23 +25,46 @@ function Cadastro() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleRegister = (e) => {
-    e.preventDefault();
-    
-    // Validação de Senha
-    if (formData.usu_senha !== formData.confirmar_senha) {
-      toast.error('As senhas não coincidem!');
-      return;
+  const handleRegister = async (e) => {
+  e.preventDefault();
+  
+  if (formData.senha !== formData.confirmar_senha) {
+    toast.error('As senhas não coincidem!');
+    return;
+  }
+
+  const toastId = toast.loading('Processando cadastro...');
+
+  try {
+    // Chamada usando a rota relativa (o Proxy do Vite completa para http://localhost:5153)
+    const response = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        cpf: formData.cpf,           // Campo esperado no back
+        email: formData.email,       // Campo esperado no back
+        telefone: formData.telefone, // Campo esperado no back
+        senha: formData.senha,       // Campo esperado no back
+        nome: formData.nome,         // Campo esperado no back
+        sobrenome: formData.sobrenome, // Campo esperado no back
+        cargoNome: formData.cargoNome  // Campo esperado no back
+      }),
+    });
+
+    if (response.ok) {
+      toast.success('Cadastro realizado com sucesso!', { id: toastId });
+      setTimeout(() => navigate('/login'), 2000);
+    } else {
+      const errorData = await response.json();
+      toast.error(errorData.message || 'Erro ao realizar cadastro', { id: toastId });
     }
-
-    // Feedback de Sucesso
-    toast.success('Cadastro realizado com sucesso!');
-
-    console.log('Dados enviados:', formData);
-    
-    // Pequeno delay para o usuário ler a mensagem antes de mudar de tela
-    setTimeout(() => navigate('/login'), 2000);
-  };
+  } catch (error) {
+    toast.error('Erro de conexão ou bloqueio de CORS', { id: toastId });
+    console.error('Erro:', error);
+  }
+};
 
   return (
     <div className={styles.page}>
@@ -59,14 +84,25 @@ function Cadastro() {
 
         <form onSubmit={handleRegister}>
           <div className={styles.formGroup}>
-            <label className={styles.label}>Nome Completo</label>
+            <label className={styles.label}>Nome</label>
             <input 
               type="text" 
-              name="usu_nome" 
+              name="nome" 
               className={styles.input} 
-              value={formData.usu_nome} 
+              value={formData.nome} 
               onChange={handleChange} 
-              placeholder="Digite seu nome"
+              required 
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Sobrenome</label>
+            <input 
+              type="text" 
+              name="sobrenome" 
+              className={styles.input} 
+              value={formData.sobrenome} 
+              onChange={handleChange} 
               required 
             />
           </div>
@@ -75,11 +111,10 @@ function Cadastro() {
             <label className={styles.label}>Email</label>
             <input 
               type="email" 
-              name="usu_email" 
+              name="email" 
               className={styles.input} 
-              value={formData.usu_email} 
+              value={formData.email} 
               onChange={handleChange} 
-              placeholder="seu@email.com"
               required 
             />
           </div>
@@ -88,9 +123,9 @@ function Cadastro() {
             <label className={styles.label}>CPF</label>
             <input 
               type="text" 
-              name="usu_cpf" 
+              name="cpf" 
               className={styles.input} 
-              value={formData.usu_cpf} 
+              value={formData.cpf} 
               onChange={handleChange} 
               placeholder="000.000.000-00"
               required 
@@ -101,9 +136,9 @@ function Cadastro() {
             <label className={styles.label}>Telefone</label>
             <input 
               type="text" 
-              name="usu_telefone" 
+              name="telefone" 
               className={styles.input} 
-              value={formData.usu_telefone} 
+              value={formData.telefone} 
               onChange={handleChange} 
               placeholder="(00) 00000-0000"
               required 
@@ -114,11 +149,10 @@ function Cadastro() {
             <label className={styles.label}>Senha</label>
             <input 
               type="password" 
-              name="usu_senha" 
+              name="senha" 
               className={styles.input} 
-              value={formData.usu_senha} 
+              value={formData.senha} 
               onChange={handleChange} 
-              placeholder="No mínimo 6 caracteres"
               required 
             />
           </div>
@@ -131,7 +165,6 @@ function Cadastro() {
               className={styles.input} 
               value={formData.confirmar_senha} 
               onChange={handleChange} 
-              placeholder="Repita a senha"
               required 
             />
           </div>
@@ -139,13 +172,13 @@ function Cadastro() {
           <div className={styles.formGroup}>
             <label className={styles.label}>Tipo de Perfil</label>
             <select 
-              name="usu_cargo_id" 
+              name="cargoNome" 
               className={styles.input} 
-              value={formData.usu_cargo_id} 
+              value={formData.cargoNome} 
               onChange={handleChange}
             >
-              <option value="2">Empreendedor (ME)</option>
-              <option value="3">Investidor</option>
+              <option value="Empreendedor">Empreendedor (ME)</option>
+              <option value="Investidor">Investidor</option>
             </select>
           </div>
 
