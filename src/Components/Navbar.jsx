@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, User, LogOut, Menu, X } from 'lucide-react';
+import toast, { Toaster } from 'react-hot-toast';
 import styles from './Navbar.module.css';
 import logo from '../assets/logo.png';
 
@@ -9,45 +10,85 @@ function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen]       = useState(false);
   const [notificacoes, setNotificacoes]           = useState([]);
+  const [propostasNtf, setPropostasNtf]           = useState([]);
   const navigate = useNavigate();
 
   const getToken = () => localStorage.getItem('token');
 
-  const fetchNotificacoes = useCallback(async () => {
+  const fetchTudo = useCallback(async () => {
     const token = getToken();
     if (!token) return;
-    try {
-      const response = await fetch('/api/notificacoes/minhas', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setNotificacoes(data);
-      }
-    } catch {}
+
+    // Busca notificações reais e propostas em paralelo
+    const [resNtf, resPrp] = await Promise.allSettled([
+      fetch('/api/notificacoes/minhas', { headers: { Authorization: `Bearer ${token}` } }),
+      fetch('/api/propostas/minhas',    { headers: { Authorization: `Bearer ${token}` } }),
+    ]);
+
+    if (resNtf.status === 'fulfilled' && resNtf.value.ok) {
+      setNotificacoes(await resNtf.value.json());
+    }
+
+    if (resPrp.status === 'fulfilled' && resPrp.value.ok) {
+      const propostas = await resPrp.value.json();
+      // Transforma propostas pendentes em itens de notificação
+      const pendentes = propostas
+        .filter(p => p.prpStatus && p.infos?.at(-1)?.aceiteNome === 'pendente')
+        .map(p => ({
+          _tipo: 'proposta',
+          ntfId: `prp-${p.prpId}`,
+          prpIdeiaId: p.prpIdeiaId,
+          mensagem: `Sua proposta para a ideia #${p.prpIdeiaId} está aguardando resposta.`,
+          lida: false,
+          createDate: p.infos?.at(-1)?.createDate,
+        }));
+      setPropostasNtf(pendentes);
+    }
   }, []);
 
   useEffect(() => {
-    fetchNotificacoes();
-    const interval = setInterval(fetchNotificacoes, 30000);
+    fetchTudo();
+    const interval = setInterval(fetchTudo, 30000);
     return () => clearInterval(interval);
-  }, [fetchNotificacoes]);
+  }, [fetchTudo]);
 
-  const temNaoLidas = notificacoes.some(n => !n.lida);
+  // Lista unificada: notificações reais + propostas pendentes
+  const todasNtf = [
+    ...notificacoes.map(n => ({ ...n, _tipo: 'notificacao' })),
+    ...propostasNtf,
+  ];
+
+  const temNaoLidas = todasNtf.some(n => !n.lida);
 
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
+
+    if (notificacao._tipo === 'proposta') {
+      // Navega direto para a ideia correspondente
+      setShowNotifications(false);
+      navigate(`/ideia/${notificacao.prpIdeiaId}`);
+      return;
+    }
+
     try {
       if (notificacao.ntfId) {
-        await fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
+        const toastId = toast.loading('Marcando como lida...');
+        const res = await fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
-        setNotificacoes(prev =>
-          prev.map(n => n.ntfId === notificacao.ntfId ? { ...n, lida: true } : n)
-        );
+        if (res.ok) {
+          setNotificacoes(prev =>
+            prev.map(n => n.ntfId === notificacao.ntfId ? { ...n, lida: true } : n)
+          );
+          toast.success('Notificação marcada como lida.', { id: toastId });
+        } else {
+          toast.error('Não foi possível marcar como lida.', { id: toastId });
+        }
       }
-    } catch {}
+    } catch {
+      toast.error('Erro de conexão.');
+    }
 
     setShowNotifications(false);
   };
@@ -59,6 +100,7 @@ function Navbar() {
 
   return (
     <nav className={styles.navbar}>
+      <Toaster position="top-right" />
 
       {/* Logo */}
       <Link to="/">
@@ -100,15 +142,15 @@ function Navbar() {
                   <h4>Notificações</h4>
                 </div>
 
-                {notificacoes.length === 0 ? (
+                {todasNtf.length === 0 ? (
                   <p className={styles.emptyState}>Você não tem novas notificações no momento.</p>
                 ) : (
                   <ul className={styles.notificationList}>
-                    {notificacoes.map((n) => (
+                    {todasNtf.map((n) => (
                         <li
                           key={n.ntfId}
                           className={styles.notificationItem}
-                          style={{ background: !n.lida ? '#f0f7ff' : undefined }}
+                          style={{ background: !n.lida ? '#f0f7ff' : undefined, cursor: 'pointer' }}
                           onClick={() => handleNotificationClick(n)}
                         >
                           <p className={styles.ntfMessage}>{n.mensagem}</p>

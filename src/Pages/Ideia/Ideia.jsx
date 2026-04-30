@@ -59,9 +59,9 @@ function Ideia() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          valor:    parseFloat(proposalData.valor),
-          fatia:    parseFloat(proposalData.fatia),
-          mensagem: proposalData.mensagem,
+          valor:     parseFloat(proposalData.valor),
+          fatiaPret: parseFloat(proposalData.fatia),
+          mensagem:  proposalData.mensagem,
         }),
       });
 

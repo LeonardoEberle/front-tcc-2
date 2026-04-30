@@ -72,28 +72,27 @@ function Propostas() {
     }
 
     const token  = getToken();
-    const prpId  = proposta.propostaId ?? proposta.prpId ?? proposta.id;
-    const aceito = action === 'accept';
+    const prpId  = proposta.prpId ?? proposta.propostaId ?? proposta.id;
+    const aceiteId = action === 'accept' ? 1 : 2;
 
     setSendingAction(true);
-    const toastId = toast.loading(aceito ? 'Aceitando proposta...' : 'Recusando proposta...');
+    const toastId = toast.loading(aceiteId === 1 ? 'Aceitando proposta...' : 'Recusando proposta...');
 
     try {
-      // POST /api/propostas/{propostaId}/responder  body: { aceito: true/false }
       const response = await fetch(`/api/propostas/${prpId}/responder`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ aceito }),
+        body: JSON.stringify({ aceiteId, retorno: null }),
       });
 
       if (response.ok) {
-        toast.success(aceito ? 'Proposta aceita!' : 'Proposta recusada.', { id: toastId });
+        toast.success(aceiteId === 1 ? 'Proposta aceita!' : 'Proposta recusada.', { id: toastId });
         setPropostas(prev => prev.map(p =>
-          (p.propostaId ?? p.prpId ?? p.id) === prpId
-            ? { ...p, statusNome: aceito ? 'Aceita' : 'Recusada', prpStatusId: aceito ? 2 : 3 }
+          (p.prpId ?? p.propostaId ?? p.id) === prpId
+            ? { ...p, statusNome: aceiteId === 1 ? 'Aceita' : 'Recusada' }
             : p
         ));
       } else {
