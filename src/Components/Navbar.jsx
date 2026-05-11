@@ -19,31 +19,62 @@ function Navbar() {
     const token = getToken();
     if (!token) return;
 
-    // Busca notificações reais e propostas em paralelo
-    const [resNtf, resPrp] = await Promise.allSettled([
+    const [resNtf, resPrpEnviadas] = await Promise.allSettled([
       fetch('/api/notificacoes/minhas', { headers: { Authorization: `Bearer ${token}` } }),
       fetch('/api/propostas/minhas',    { headers: { Authorization: `Bearer ${token}` } }),
     ]);
 
     if (resNtf.status === 'fulfilled' && resNtf.value.ok) {
-      setNotificacoes(await resNtf.value.json());
+      const raw = await resNtf.value.json();
+      const normalizado = raw.map(n => ({
+        ntfId:      n.NtfId      ?? n.ntfId,
+        tipoId:     n.TipoId     ?? n.tipoId,
+        tipoNome:   n.TipoNome   ?? n.tipoNome,
+        mensagem:   n.Mensagem   ?? n.mensagem   ?? '(sem mensagem)',
+        lida:       n.Lida       ?? n.lida        ?? false,
+        createDate: n.CreateDate ?? n.createDate,
+      }));
+      setNotificacoes(normalizado);
     }
 
-    if (resPrp.status === 'fulfilled' && resPrp.value.ok) {
-      const propostas = await resPrp.value.json();
-      // Transforma propostas pendentes em itens de notificação
-      const pendentes = propostas
-        .filter(p => p.prpStatus && p.infos?.at(-1)?.aceiteNome === 'pendente')
-        .map(p => ({
-          _tipo: 'proposta',
-          ntfId: `prp-${p.prpId}`,
-          prpIdeiaId: p.prpIdeiaId,
-          mensagem: `Sua proposta para a ideia #${p.prpIdeiaId} está aguardando resposta.`,
-          lida: false,
-          createDate: p.infos?.at(-1)?.createDate,
-        }));
-      setPropostasNtf(pendentes);
+    const notifExtras = [];
+    if (resPrpEnviadas.status === 'fulfilled' && resPrpEnviadas.value.ok) {
+      const enviadas = await resPrpEnviadas.value.json();
+      enviadas.forEach(p => {
+        const prpId   = p.PrpId      ?? p.prpId;
+        const ideiaId = p.PrpIdeiaId ?? p.prpIdeiaId;
+        const infos   = p.Infos      ?? p.infos ?? [];
+        const ultimo  = infos[infos.length - 1] ?? {};
+        const aceite  = (ultimo.AceiteNome ?? ultimo.aceiteNome ?? '').toLowerCase();
+        const retorno = ultimo.Retorno ?? ultimo.retorno;
+
+        // Contraproposta: pendente MAS com retorno preenchido
+        if (aceite === 'pendente' && retorno) {
+          notifExtras.push({
+            _tipo:      'contraproposta',
+            ntfId:      `prp-counter-${prpId}`,
+            prpId,
+            prpIdeiaId: ideiaId,
+            mensagem:   `O empreendedor fez uma contraproposta na ideia #${ideiaId}!`,
+            lida:       false,
+            createDate: ultimo.CreateDate ?? ultimo.createDate,
+          });
+        }
+        // Proposta respondida (aceita ou recusada)
+        else if (aceite && aceite !== 'pendente') {
+          notifExtras.push({
+            _tipo:      'proposta-respondida',
+            ntfId:      `prp-env-${prpId}`,
+            prpIdeiaId: ideiaId,
+            mensagem:   `Sua proposta para a ideia #${ideiaId} foi ${aceite}.`,
+            lida:       false,
+            createDate: ultimo.CreateDate ?? ultimo.createDate,
+          });
+        }
+      });
     }
+
+    setPropostasNtf(notifExtras);
   }, []);
 
   useEffect(() => {
@@ -52,7 +83,6 @@ function Navbar() {
     return () => clearInterval(interval);
   }, [fetchTudo]);
 
-  // Lista unificada: notificações reais + propostas pendentes
   const todasNtf = [
     ...notificacoes.map(n => ({ ...n, _tipo: 'notificacao' })),
     ...propostasNtf,
@@ -62,35 +92,47 @@ function Navbar() {
 
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
+    setShowNotifications(false);
 
-    if (notificacao._tipo === 'proposta') {
-      // Navega direto para a ideia correspondente
-      setShowNotifications(false);
-      navigate(`/ideia/${notificacao.prpIdeiaId}`);
+    // Contraproposta → leva o investidor para ver e responder
+    if (notificacao._tipo === 'contraproposta') {
+      navigate('/minhas-propostas');
       return;
     }
 
+    // Proposta respondida → leva para a ideia
+    if (notificacao._tipo === 'proposta-respondida') {
+      navigate('/minhas-propostas');
+      return;
+    }
+
+    // Notificação real do banco (empreendedor recebeu proposta)
     try {
       if (notificacao.ntfId) {
-        const toastId = toast.loading('Marcando como lida...');
-        const res = await fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
+        fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
+        }).then(res => {
+          if (res.ok) {
+            setNotificacoes(prev =>
+              prev.map(n => n.ntfId === notificacao.ntfId ? { ...n, lida: true } : n)
+            );
+          }
         });
-        if (res.ok) {
-          setNotificacoes(prev =>
-            prev.map(n => n.ntfId === notificacao.ntfId ? { ...n, lida: true } : n)
-          );
-          toast.success('Notificação marcada como lida.', { id: toastId });
-        } else {
-          toast.error('Não foi possível marcar como lida.', { id: toastId });
-        }
+      }
+
+      const ideiaId =
+        (notificacao.mensagem ?? '').match(/ideia\s*#(\d+)/i)?.[1] ??
+        (notificacao.mensagem ?? '').match(/\d+/)?.[0];
+
+      if (ideiaId) {
+        navigate(`/responder-proposta/${ideiaId}`);
+      } else {
+        toast.error('Não foi possível identificar a ideia desta notificação.');
       }
     } catch {
       toast.error('Erro de conexão.');
     }
-
-    setShowNotifications(false);
   };
 
   const handleLogout = () => {
@@ -98,27 +140,33 @@ function Navbar() {
     navigate('/login');
   };
 
+  const navLinks = [
+    { to: '/',               label: 'Home'            },
+    { to: '/ideias',         label: 'Ideias'          },
+    { to: '/minhas-ideias',  label: 'Minhas Ideias'   },
+    { to: '/minhas-propostas', label: 'Minhas Propostas' },
+    { to: '/perfil',         label: 'Meu Perfil'      },
+  ];
+
   return (
     <nav className={styles.navbar}>
       <Toaster position="top-right" />
 
-      {/* Logo */}
       <Link to="/">
         <img src={logo} alt="Logo" className={styles.logo} />
       </Link>
 
-      {/* Links desktop */}
-      <div className={`${styles.links} ${mobileMenuOpen ? styles.linksOpen : ''} ${styles.desktopOnly}`}>
-        <Link to="/"              className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Home</Link>
-        <Link to="/ideias"        className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Ideias</Link>
-        <Link to="/minhas-ideias" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Minhas Ideias</Link>
-        <Link to="/perfil"        className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Meu Perfil</Link>
+      {/* Menu desktop */}
+      <div className={`${styles.links} ${styles.desktopOnly}`}>
+        {navLinks.map(link => (
+          <Link key={link.to} to={link.to} className={styles.navLink}>
+            {link.label}
+          </Link>
+        ))}
       </div>
 
-      {/* Ações */}
       <div className={styles.actions}>
-
-        {/* Sino de notificações */}
+        {/* Sino */}
         <div className={styles.iconWrapper}>
           <button
             className={styles.iconButton}
@@ -146,21 +194,21 @@ function Navbar() {
                   <p className={styles.emptyState}>Você não tem novas notificações no momento.</p>
                 ) : (
                   <ul className={styles.notificationList}>
-                    {todasNtf.map((n) => (
-                        <li
-                          key={n.ntfId}
-                          className={styles.notificationItem}
-                          style={{ background: !n.lida ? '#f0f7ff' : undefined, cursor: 'pointer' }}
-                          onClick={() => handleNotificationClick(n)}
-                        >
-                          <p className={styles.ntfMessage}>{n.mensagem}</p>
-                          {n.createDate && (
-                            <span className={styles.ntfDate}>
-                              {new Date(n.createDate).toLocaleDateString('pt-BR')}
-                            </span>
-                          )}
-                        </li>
-                      ))}
+                    {todasNtf.map(n => (
+                      <li
+                        key={n.ntfId}
+                        className={styles.notificationItem}
+                        style={{ background: !n.lida ? '#f0f7ff' : undefined, cursor: 'pointer' }}
+                        onClick={() => handleNotificationClick(n)}
+                      >
+                        <p className={styles.ntfMessage}>{n.mensagem}</p>
+                        {n.createDate && (
+                          <span className={styles.ntfDate}>
+                            {new Date(n.createDate).toLocaleDateString('pt-BR')}
+                          </span>
+                        )}
+                      </li>
+                    ))}
                   </ul>
                 )}
               </motion.div>
@@ -168,18 +216,15 @@ function Navbar() {
           </AnimatePresence>
         </div>
 
-        {/* Perfil */}
         <Link to="/perfil" className={styles.iconButton} aria-label="Perfil">
           <User size={22} />
         </Link>
 
-        {/* Logout */}
         <button className={styles.logoutButton} onClick={handleLogout}>
           <LogOut size={18} />
           Sair
         </button>
 
-        {/* Hamburguer mobile */}
         <button
           className={styles.menuMobile}
           onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -198,14 +243,19 @@ function Navbar() {
             animate={{ opacity: 1 }}
             exit={{    opacity: 0 }}
           >
-            <Link to="/"              className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Home</Link>
-            <Link to="/ideias"        className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Ideias</Link>
-            <Link to="/minhas-ideias" className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Minhas Ideias</Link>
-            <Link to="/perfil"        className={styles.navLink} onClick={() => setMobileMenuOpen(false)}>Meu Perfil</Link>
+            {navLinks.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={styles.navLink}
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {link.label}
+              </Link>
+            ))}
           </motion.div>
         )}
       </AnimatePresence>
-
     </nav>
   );
 }
