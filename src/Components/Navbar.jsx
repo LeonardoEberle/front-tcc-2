@@ -13,8 +13,19 @@ function Navbar() {
   const [propostasNtf, setPropostasNtf]           = useState([]);
   const navigate = useNavigate();
 
+  // BLOQUEIO DE SCROLL: Impede o fundo de rolar quando o menu mobile está aberto
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => { document.body.style.overflow = 'unset'; };
+  }, [mobileMenuOpen]);
+
   const getToken = () => localStorage.getItem('token');
 
+  // SUA LÓGICA ORIGINAL DE FETCH (SEM ALTERAÇÕES)
   const fetchTudo = useCallback(async () => {
     const token = getToken();
     if (!token) return;
@@ -48,7 +59,6 @@ function Navbar() {
         const aceite  = (ultimo.AceiteNome ?? ultimo.aceiteNome ?? '').toLowerCase();
         const retorno = ultimo.Retorno ?? ultimo.retorno;
 
-        // Contraproposta: pendente MAS com retorno preenchido
         if (aceite === 'pendente' && retorno) {
           notifExtras.push({
             _tipo:      'contraproposta',
@@ -60,7 +70,6 @@ function Navbar() {
             createDate: ultimo.CreateDate ?? ultimo.createDate,
           });
         }
-        // Proposta respondida (aceita ou recusada)
         else if (aceite && aceite !== 'pendente') {
           notifExtras.push({
             _tipo:      'proposta-respondida',
@@ -90,23 +99,21 @@ function Navbar() {
 
   const temNaoLidas = todasNtf.some(n => !n.lida);
 
+  // SUA LÓGICA ORIGINAL DE CLIQUE (RESTABELECIDA)
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
     setShowNotifications(false);
 
-    // Contraproposta → leva o investidor para ver e responder
     if (notificacao._tipo === 'contraproposta') {
       navigate('/minhas-propostas');
       return;
     }
 
-    // Proposta respondida → leva para a ideia
     if (notificacao._tipo === 'proposta-respondida') {
       navigate('/minhas-propostas');
       return;
     }
 
-    // Notificação real do banco (empreendedor recebeu proposta)
     try {
       if (notificacao.ntfId) {
         fetch(`/api/notificacoes/${notificacao.ntfId}/lida`, {
@@ -166,12 +173,10 @@ function Navbar() {
       </div>
 
       <div className={styles.actions}>
-        {/* Sino */}
         <div className={styles.iconWrapper}>
           <button
             className={styles.iconButton}
             onClick={() => setShowNotifications(!showNotifications)}
-            aria-label="Notificações"
           >
             <Bell size={22} />
             {temNaoLidas && <span className={styles.badge} />}
@@ -181,10 +186,9 @@ function Navbar() {
             {showNotifications && (
               <motion.div
                 className={styles.popup}
-                initial={{ opacity: 0, y: -8, scale: 0.97 }}
-                animate={{ opacity: 1, y: 0,  scale: 1    }}
-                exit={{    opacity: 0, y: -8, scale: 0.97 }}
-                transition={{ duration: 0.18 }}
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{    opacity: 0, y: -8 }}
               >
                 <div className={styles.popupHeader}>
                   <h4>Notificações</h4>
@@ -198,7 +202,10 @@ function Navbar() {
                       <li
                         key={n.ntfId}
                         className={styles.notificationItem}
-                        style={{ background: !n.lida ? '#f0f7ff' : undefined, cursor: 'pointer' }}
+                        style={{ 
+                          background: !n.lida ? '#f0f7ff' : undefined, 
+                          cursor: 'pointer' 
+                        }}
                         onClick={() => handleNotificationClick(n)}
                       >
                         <p className={styles.ntfMessage}>{n.mensagem}</p>
@@ -216,44 +223,61 @@ function Navbar() {
           </AnimatePresence>
         </div>
 
-        <Link to="/perfil" className={styles.iconButton} aria-label="Perfil">
+        <Link to="/perfil" className={`${styles.iconButton} ${styles.desktopOnly}`}>
           <User size={22} />
         </Link>
 
-        <button className={styles.logoutButton} onClick={handleLogout}>
-          <LogOut size={18} />
-          Sair
+        <button className={`${styles.logoutButton} ${styles.desktopOnly}`} onClick={handleLogout}>
+          <LogOut size={18} /> Sair
         </button>
 
-        <button
-          className={styles.menuMobile}
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          aria-label="Menu"
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+        <button className={styles.menuMobile} onClick={() => setMobileMenuOpen(true)}>
+          <Menu size={26} />
         </button>
       </div>
 
-      {/* Menu mobile */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <motion.div
-            className={`${styles.links} ${styles.mobileOnly}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{    opacity: 0 }}
-          >
-            {navLinks.map(link => (
-              <Link
-                key={link.to}
-                to={link.to}
-                className={styles.navLink}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-          </motion.div>
+          <>
+            <motion.div 
+              className={styles.overlay}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            
+            <motion.div
+              className={`${styles.links} ${styles.mobileOnly}`}
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{    x: '100%' }}
+              transition={{ type: 'tween', duration: 0.3 }}
+            >
+              <div className={styles.mobileHeader}>
+                <button className={styles.closeButton} onClick={() => setMobileMenuOpen(false)}>
+                  <X size={28} />
+                </button>
+              </div>
+
+              <div className={styles.mobileNav}>
+                {navLinks.map(link => (
+                  <Link
+                    key={link.to}
+                    to={link.to}
+                    className={styles.navLink}
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <hr className={styles.divider} />
+                <button className={styles.mobileLogout} onClick={handleLogout}>
+                  <LogOut size={20} /> Sair da conta
+                </button>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </nav>

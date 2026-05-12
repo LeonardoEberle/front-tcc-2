@@ -38,7 +38,7 @@ function Propostas() {
         if (resIdeia.ok) setIdeia(await resIdeia.json());
 
         // Busca propostas da ideia (endpoint do empreendedor)
-        const resProp = await apiRequest(`/apii/ideias/${ideiaId}/propostas`, {
+        const resProp = await apiRequest(`/api/ideias/${ideiaId}/propostas`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
