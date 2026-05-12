@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './ResponderProposta.module.css';
+import { apiRequest } from '../../services/api';
 
 function ResponderProposta() {
   const { ideiaId } = useParams();
@@ -28,7 +29,7 @@ function ResponderProposta() {
       if (!token) { setLoading(false); return; }
 
       try {
-        const res = await fetch(`/api/ideias/${ideiaId}/propostas`, {
+        const res = await apiRequest(`/api/ideias/${ideiaId}/propostas`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -76,7 +77,7 @@ function ResponderProposta() {
 
   const notificarInvestidor = async (token, mensagem) => {
     try {
-      await fetch('/api/notificacoes/disparar', {
+      await apiRequest('/api/notificacoes/disparar', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ usuarioId: Number(proposta.usuarioId), tipoId: 1, mensagem }),
@@ -93,7 +94,7 @@ function ResponderProposta() {
     setSending(true);
     const toastId = toast.loading(aceiteId === 1 ? 'Aceitando...' : 'Recusando...');
     try {
-      const res = await fetch(`/api/propostas/${proposta.prpId}/responder`, {
+      const res = await apiRequest(`/api/propostas/${proposta.prpId}/responder`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ aceiteId, retorno: null }),
@@ -122,7 +123,7 @@ function ResponderProposta() {
     setSending(true);
     const toastId = toast.loading('Enviando contraproposta...');
     try {
-      const res = await fetch(`/api/propostas/${proposta.prpId}/responder`, {
+      const res = await apiRequest(`/api/propostas/${proposta.prpId}/responder`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ aceiteId: 3, retorno: counterRetorno.trim() }),

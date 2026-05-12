@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Ideia.module.css';
+import { apiRequest } from '../../services/api';
 
 function Ideia() {
   const { id } = useParams();
@@ -24,7 +25,7 @@ function Ideia() {
     const fetchIdeia = async () => {
       const token = localStorage.getItem('token');
       try {
-        const response = await fetch(`/api/ideias/${id}`, {
+        const response = await apiRequest(`/api/ideias/${id}`, {
           headers: {
             Authorization: token ? `Bearer ${token}` : '',
             'Content-Type': 'application/json',
@@ -61,7 +62,7 @@ function Ideia() {
   // ── PEÇA-CHAVE: dispara notificação para o dono via POST /api/notificacoes ──
   const dispararNotificacaoDono = async (token, donoId, ideiaId, nomeIdeia) => {
   try {
-    await fetch('/api/notificacoes/disparar', {
+    await apiRequest('/api/notificacoes/disparar', {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -85,7 +86,7 @@ function Ideia() {
     const toastId = toast.loading('Enviando proposta...');
 
     try {
-      const response = await fetch(`/api/ideias/${id}/propostas`, {
+      const response = await apiRequest(`/api/ideias/${id}/propostas`, {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,

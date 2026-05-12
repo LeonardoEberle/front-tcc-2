@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { apiRequest } from '../../services/api';
 import {
   ChevronLeft, DollarSign, PieChart, Clock,
   CheckCircle, XCircle, RefreshCcw, MessageSquare, Rocket
@@ -20,7 +21,7 @@ function MinhasPropostas() {
       const token = getToken();
       if (!token) { setLoading(false); return; }
       try {
-        const res = await fetch('/api/propostas/minhas', {
+        const res = await apiRequest('/api/propostas/minhas', {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
@@ -61,7 +62,7 @@ function MinhasPropostas() {
     setSending(proposta.prpId);
     const toastId = toast.loading(aceitar ? 'Aceitando...' : 'Recusando...');
     try {
-      const res = await fetch(`/api/propostas/${proposta.prpId}/encerrar`, {
+      const res = await apiRequest(`/api/propostas/${proposta.prpId}/encerrar`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ aceitar }),

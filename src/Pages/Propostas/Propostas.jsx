@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Propostas.module.css';
+import { apiRequest } from '../../services/api';
 
 function Propostas() {
   const { ideiaId } = useParams();
@@ -31,13 +32,13 @@ function Propostas() {
 
       try {
         // Busca dados da ideia
-        const resIdeia = await fetch(`/api/ideias/${ideiaId}`, {
+        const resIdeia = await apiRequest(`/api/ideias/${ideiaId}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         if (resIdeia.ok) setIdeia(await resIdeia.json());
 
         // Busca propostas da ideia (endpoint do empreendedor)
-        const resProp = await fetch(`/api/ideias/${ideiaId}/propostas`, {
+        const resProp = await apiRequest(`/apii/ideias/${ideiaId}/propostas`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -78,7 +79,7 @@ function Propostas() {
 
   const notificarInvestidor = async (token, usuarioId, status) => {
     try {
-      await fetch('/api/notificacoes/disparar', {
+      await apiRequest('/api/notificacoes/disparar', {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -112,7 +113,7 @@ function Propostas() {
     const toastId = toast.loading(aceiteId === 1 ? 'Aceitando...' : 'Recusando...');
 
     try {
-      const res = await fetch(`/api/propostas/${proposta.prpId}/responder`, {
+      const res = await apiRequest(`/api/propostas/${proposta.prpId}/responder`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({ aceiteId, retorno: null }),
@@ -152,7 +153,7 @@ function Propostas() {
   const toastId = toast.loading('Enviando contraproposta...');
 
   try {
-    const res = await fetch(`/api/propostas/${selectedProposta.prpId}/responder`, {
+    const res = await apiRequest(`/api/propostas/${selectedProposta.prpId}/responder`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
