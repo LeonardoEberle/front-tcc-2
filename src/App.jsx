@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import Navbar from './Components/Navbar';
 import Dashboard from './Pages/Dashboard/Dashboard.jsx';
@@ -20,7 +20,7 @@ import './App.css';
 
 function Layout({ children }) {
   const location = useLocation();
-  const hideNavbarPaths = ['/login', '/cadastro', '/recup-senha'];
+  const hideNavbarPaths = ['/', '/login', '/cadastro', '/recup-senha'];
   const shouldHideNavbar = hideNavbarPaths.includes(location.pathname);
 
   return (
@@ -31,6 +31,11 @@ function Layout({ children }) {
       </main>
     </>
   );
+}
+
+function HomeRedirect() {
+  const token = localStorage.getItem('token');
+  return token ? <Navigate to="/dashboard" replace /> : <Navigate to="/login" replace />;
 }
 
 
@@ -48,7 +53,8 @@ function App() {
       />
       <Layout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<HomeRedirect />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recup-senha" element={<RecupSenha />} />

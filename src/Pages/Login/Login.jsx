@@ -64,7 +64,7 @@ function Login() {
           localStorage.setItem("user", JSON.stringify({ id: userId }));
 
           toast.success("Login bem-sucedido!", { id: toastId });
-          setTimeout(() => navigate("/"), 1500);
+          setTimeout(() => navigate("/dashboard"), 1500);
         } else {
           const errorData = await response.json().catch(() => ({}));
           toast.error(errorData.message || "Credenciais inválidas.", { id: toastId });

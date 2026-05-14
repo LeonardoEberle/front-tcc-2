@@ -75,18 +75,6 @@ function ResponderProposta() {
     fetchProposta();
   }, [ideiaId]);
 
-  const notificarInvestidor = async (token, mensagem) => {
-    try {
-      await apiRequest('/api/notificacoes/disparar', {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ usuarioId: Number(proposta.usuarioId), tipoId: 1, mensagem }),
-      });
-    } catch {
-      console.warn('Não foi possível notificar o investidor.');
-    }
-  };
-
   // Aceitar (aceiteId=1) ou Recusar (aceiteId=2)
   const responder = async (aceiteId) => {
     const token = getToken();
@@ -102,7 +90,6 @@ function ResponderProposta() {
       if (res.ok) {
         const status = aceiteId === 1 ? 'aceita' : 'recusada';
         toast.success(aceiteId === 1 ? 'Proposta aceita!' : 'Proposta recusada.', { id: toastId });
-        await notificarInvestidor(token, `Sua proposta para a ideia #${ideiaId} foi ${status}!`);
         setResultado(status);
       } else {
         const err = await res.json().catch(() => ({}));
@@ -130,10 +117,6 @@ function ResponderProposta() {
       });
       if (res.ok) {
         toast.success('Contraproposta enviada!', { id: toastId });
-        await notificarInvestidor(
-          token,
-          `O empreendedor fez uma contraproposta na ideia #${ideiaId}: "${counterRetorno.trim()}"`
-        );
         setShowCounterModal(false);
         setCounterRetorno('');
         setResultado('contraproposta');

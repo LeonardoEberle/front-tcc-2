@@ -10,7 +10,6 @@ function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen]       = useState(false);
   const [notificacoes, setNotificacoes]           = useState([]);
-  const [propostasNtf, setPropostasNtf]           = useState([]);
   const navigate = useNavigate();
 
   // BLOQUEIO DE SCROLL: Impede o fundo de rolar quando o menu mobile está aberto
@@ -30,13 +29,10 @@ function Navbar() {
     const token = getToken();
     if (!token) return;
 
-    const [resNtf, resPrpEnviadas] = await Promise.allSettled([
-      fetch('/api/notificacoes/minhas', { headers: { Authorization: `Bearer ${token}` } }),
-      fetch('/api/propostas/minhas',    { headers: { Authorization: `Bearer ${token}` } }),
-    ]);
+    const resNtf = await fetch('/api/notificacoes/minhas', { headers: { Authorization: `Bearer ${token}` } });
 
-    if (resNtf.status === 'fulfilled' && resNtf.value.ok) {
-      const raw = await resNtf.value.json();
+    if (resNtf.ok) {
+      const raw = await resNtf.json();
       const normalizado = raw.map(n => ({
         ntfId:      n.NtfId      ?? n.ntfId,
         tipoId:     n.TipoId     ?? n.tipoId,
@@ -47,43 +43,6 @@ function Navbar() {
       }));
       setNotificacoes(normalizado);
     }
-
-    const notifExtras = [];
-    if (resPrpEnviadas.status === 'fulfilled' && resPrpEnviadas.value.ok) {
-      const enviadas = await resPrpEnviadas.value.json();
-      enviadas.forEach(p => {
-        const prpId   = p.PrpId      ?? p.prpId;
-        const ideiaId = p.PrpIdeiaId ?? p.prpIdeiaId;
-        const infos   = p.Infos      ?? p.infos ?? [];
-        const ultimo  = infos[infos.length - 1] ?? {};
-        const aceite  = (ultimo.AceiteNome ?? ultimo.aceiteNome ?? '').toLowerCase();
-        const retorno = ultimo.Retorno ?? ultimo.retorno;
-
-        if (aceite === 'pendente' && retorno) {
-          notifExtras.push({
-            _tipo:      'contraproposta',
-            ntfId:      `prp-counter-${prpId}`,
-            prpId,
-            prpIdeiaId: ideiaId,
-            mensagem:   `O empreendedor fez uma contraproposta na ideia #${ideiaId}!`,
-            lida:       false,
-            createDate: ultimo.CreateDate ?? ultimo.createDate,
-          });
-        }
-        else if (aceite && aceite !== 'pendente') {
-          notifExtras.push({
-            _tipo:      'proposta-respondida',
-            ntfId:      `prp-env-${prpId}`,
-            prpIdeiaId: ideiaId,
-            mensagem:   `Sua proposta para a ideia #${ideiaId} foi ${aceite}.`,
-            lida:       false,
-            createDate: ultimo.CreateDate ?? ultimo.createDate,
-          });
-        }
-      });
-    }
-
-    setPropostasNtf(notifExtras);
   }, []);
 
   useEffect(() => {
@@ -92,27 +51,13 @@ function Navbar() {
     return () => clearInterval(interval);
   }, [fetchTudo]);
 
-  const todasNtf = [
-    ...notificacoes.map(n => ({ ...n, _tipo: 'notificacao' })),
-    ...propostasNtf,
-  ];
-
-  const temNaoLidas = todasNtf.some(n => !n.lida);
+  const todasNtf = notificacoes;
+  const temNaoLidas = notificacoes.some(n => !n.lida);
 
   // SUA LÓGICA ORIGINAL DE CLIQUE (RESTABELECIDA)
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
     setShowNotifications(false);
-
-    if (notificacao._tipo === 'contraproposta') {
-      navigate('/minhas-propostas');
-      return;
-    }
-
-    if (notificacao._tipo === 'proposta-respondida') {
-      navigate('/minhas-propostas');
-      return;
-    }
 
     try {
       if (notificacao.ntfId) {
@@ -128,15 +73,20 @@ function Navbar() {
         });
       }
 
-      const ideiaId =
-        (notificacao.mensagem ?? '').match(/ideia\s*#(\d+)/i)?.[1] ??
-        (notificacao.mensagem ?? '').match(/\d+/)?.[0];
+      const tipoNome = (notificacao.tipoNome ?? '').toLowerCase();
 
-      if (ideiaId) {
-        navigate(`/responder-proposta/${ideiaId}`);
-      } else {
-        toast.error('Não foi possível identificar a ideia desta notificação.');
+      if (tipoNome.startsWith('prp ') && tipoNome !== 'prp recebida') {
+        navigate('/minhas-propostas');
+        return;
       }
+
+      const ideiaId = (notificacao.mensagem ?? '').match(/ideia\s*#(\d+)/i)?.[1];
+      if (!ideiaId) {
+        toast.error('Não foi possível identificar a ideia desta notificação.');
+        return;
+      }
+
+      navigate(`/responder-proposta/${ideiaId}`);
     } catch {
       toast.error('Erro de conexão.');
     }
@@ -148,7 +98,7 @@ function Navbar() {
   };
 
   const navLinks = [
-    { to: '/',               label: 'Home'            },
+    { to: '/dashboard',      label: 'Home'            },
     { to: '/ideias',         label: 'Ideias'          },
     { to: '/minhas-ideias',  label: 'Minhas Ideias'   },
     { to: '/minhas-propostas', label: 'Minhas Propostas' },
@@ -159,7 +109,7 @@ function Navbar() {
     <nav className={styles.navbar}>
       <Toaster position="top-right" />
 
-      <Link to="/">
+      <Link to="/dashboard">
         <img src={logo} alt="Logo" className={styles.logo} />
       </Link>
 
