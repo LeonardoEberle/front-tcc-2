@@ -4,25 +4,10 @@ import { motion } from 'framer-motion';
 import { apiRequest } from '../../services/api';
 import {
   ChevronLeft, DollarSign, PieChart, Clock,
-  CheckCircle, XCircle, RefreshCcw, MessageSquare, Rocket
+  CheckCircle, XCircle, RefreshCcw, MessageSquare, Rocket, FileText
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-
-const getToken = () => localStorage.getItem('token');
-
-const getRoleFromToken = (token) => {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    return (
-      payload.role ||
-      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ||
-      payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/role'] ||
-      ''
-    );
-  } catch {
-    return '';
-  }
-};
+import { getToken, getRoleFromToken } from '../../utils/auth';
 
 const normalizeProposta = (p) => {
   const infos = (p.Infos ?? p.infos ?? []).map(i => ({
@@ -104,11 +89,36 @@ function MinhasPropostas() {
     }
   };
 
+  const handleDownloadContrato = async (propostaId) => {
+    const token = getToken();
+    try {
+      const response = await fetch(`/api/propostas/${propostaId}/contrato`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Contrato-Investimento-${propostaId}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast.success('Contrato baixado com sucesso!');
+      } else {
+        toast.error('Erro ao baixar contrato.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
+    }
+  };
+
   const getStatusInfo = (aceiteNome) => {
-    if (aceiteNome.includes('aceit'))  return { label: 'Aceita',         cor: '#22c55e', icon: <CheckCircle size={13}/> };
-    if (aceiteNome.includes('recus'))  return { label: 'Recusada',       cor: '#ef4444', icon: <XCircle    size={13}/> };
-    if (aceiteNome === 'pendente')     return { label: 'Pendente',       cor: '#f59e0b', icon: <Clock      size={13}/> };
-    return                                    { label: 'Em negociação',  cor: '#6366f1', icon: <RefreshCcw size={13}/> };
+    const nome = (aceiteNome || '').toLowerCase();
+    if (nome.includes('aceit'))  return { label: 'Aceita',         cor: '#22c55e', icon: <CheckCircle size={13}/> };
+    if (nome.includes('recus'))  return { label: 'Recusada',       cor: '#ef4444', icon: <XCircle    size={13}/> };
+    if (nome.includes('contra')) return { label: 'Contraproposta', cor: '#6366f1', icon: <RefreshCcw size={13}/> };
+    return                              { label: 'Pendente',       cor: '#f59e0b', icon: <Clock      size={13}/> };
   };
 
   if (loading) return (
@@ -147,8 +157,8 @@ function MinhasPropostas() {
             {propostas.map(p => {
               const ultimo           = p.infos?.[p.infos.length - 1] ?? {};
               const statusInfo       = getStatusInfo(ultimo.aceiteNome ?? '');
-              const temContraproposta = (ultimo.aceiteNome === 'pendente') && !!ultimo.retorno;
-              const isFechada        = ultimo.aceiteNome.includes('aceit') || ultimo.aceiteNome.includes('recus');
+              const temContraproposta = (ultimo.aceiteNome === 'contraproposta') && !!ultimo.retorno;
+              const isFechada        = (ultimo.aceiteNome || '').includes('aceit') || (ultimo.aceiteNome || '').includes('recus');
 
               return (
                 <motion.div
@@ -240,6 +250,16 @@ function MinhasPropostas() {
                     <p style={{ marginTop: 12, fontSize: 13, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 6 }}>
                       <Clock size={13} /> Aguardando resposta do empreendedor...
                     </p>
+                  )}
+
+                  {/* Botão de Download de Contrato se aceita */}
+                  {(ultimo.aceiteNome || '').includes('aceit') && (
+                    <button
+                      style={{ ...s.btnPrimary, background: '#22c55e', marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                      onClick={() => handleDownloadContrato(p.prpId)}
+                    >
+                      <FileText size={18} /> Baixar Termo de Investimento
+                    </button>
                   )}
 
                   {role === 'empreendedor' && !isFechada && (

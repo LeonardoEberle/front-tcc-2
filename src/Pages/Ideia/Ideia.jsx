@@ -3,11 +3,13 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, PlayCircle, MessageSquare, Info,
-  User, PieChart, X, CheckCircle, Send, Rocket, FileText
+  User, PieChart, X, CheckCircle, Send, Rocket, FileText,
+  AlertCircle
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Ideia.module.css';
 import { apiRequest } from '../../services/api';
+import { getUsuarioId } from '../../utils/auth';
 
 function Ideia() {
   const { id } = useParams();
@@ -20,6 +22,11 @@ function Ideia() {
   const [proposalSent, setProposalSent]       = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
   const [proposalData, setProposalData]       = useState({ valor: '', fatia: '', mensagem: '' });
+
+  // Comentários
+  const [commentText, setCommentText] = useState('');
+  const [isCommenting, setIsCommenting] = useState(false);
+  const [replyingTo, setReplyingTo] = useState(null); // id do comentário pai
 
   useEffect(() => {
     const fetchIdeia = async () => {
@@ -132,6 +139,104 @@ function Ideia() {
     setProposalData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!commentText.trim()) return;
+
+    const token = localStorage.getItem('token');
+    if (!token) { toast.error('Faça login para comentar.'); return; }
+
+    setIsCommenting(true);
+    try {
+      const response = await apiRequest(`/api/ideias/${id}/comentarios`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          texto: commentText,
+          parentId: replyingTo
+        }),
+      });
+
+      if (response.ok) {
+        toast.success('Comentário enviado!');
+        setCommentText('');
+        setReplyingTo(null);
+        // Recarrega a ideia para mostrar o novo comentário
+        const res = await apiRequest(`/api/ideias/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) setIdeia(await res.json());
+      } else {
+        toast.error('Erro ao enviar comentário.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
+    } finally {
+      setIsCommenting(false);
+    }
+  };
+
+  const handleStartChat = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Faça login para conversar com o empreendedor.');
+      return;
+    }
+
+    try {
+      const response = await apiRequest('/api/chat/mensagens', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          paraUsuarioId: ideia.idaUsuarioId,
+          ideiaId: ideia.idaId,
+          texto: "Olá! Gostaria de saber mais sobre sua ideia."
+        })
+      });
+
+      if (response.ok) {
+        navigate('/chat');
+      } else {
+        toast.error('Erro ao iniciar conversa.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
+    }
+  };
+
+  const handleDenunciar = async () => {
+    const motivo = window.prompt("Por que você está denunciando esta ideia?");
+    if (!motivo) return;
+
+    const token = localStorage.getItem('token');
+    try {
+      const response = await apiRequest('/api/governança/denunciar', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          tipoAlvo: "Ideia",
+          alvoId: ideia.idaId,
+          motivo
+        })
+      });
+
+      if (response.ok) {
+        toast.success("Denúncia enviada para moderação.");
+      }
+    } catch {
+      toast.error("Erro ao enviar denúncia.");
+    }
+  };
+
   const usuarioLogadoId = String(getUsuarioId() ?? '');
   const donoIdeia       = String(ideia?.idaUsuarioId ?? ideia?.usuarioId ?? '');
   const isOwner         = usuarioLogadoId && donoIdeia && usuarioLogadoId === donoIdeia;
@@ -216,6 +321,15 @@ function Ideia() {
                 <span>Empreendedor</span>
                 <strong>ID #{ideia.idaUsuarioId}</strong>
               </div>
+              {usuarioLogadoId !== donoIdeia && (
+                <button 
+                  onClick={handleDenunciar} 
+                  title="Denunciar Ideia"
+                  style={{ marginLeft: 'auto', background: 'none', border: 'none', color: '#94a3b8', cursor: 'pointer' }}
+                >
+                  <AlertCircle size={18} />
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -257,7 +371,12 @@ function Ideia() {
             <div className={styles.actionCard}>
               <div className={styles.cardHeader}><MessageSquare size={22} color="#0d47a1" /><h3>Fazer Proposta</h3></div>
               <p>Demonstre seu interesse e envie uma proposta de investimento ao empreendedor.</p>
-              <button className={styles.buttonPrimary} onClick={() => setShowProposal(true)}>Enviar Proposta</button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                <button className={styles.buttonPrimary} onClick={() => setShowProposal(true)}>Enviar Proposta</button>
+                <button className={styles.buttonSecondary} onClick={handleStartChat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 12, border: '1.5px solid #0d47a1', background: 'transparent', color: '#0d47a1', fontWeight: 700, cursor: 'pointer' }}>
+                  <MessageSquare size={18} /> Conversar com Empreendedor
+                </button>
+              </div>
             </div>
           )}
 
@@ -278,6 +397,69 @@ function Ideia() {
             <div style={{ fontSize:36, fontWeight:900, color:'#0d47a1', textAlign:'center', padding:'10px 0' }}>
               {fatia != null ? `${fatia}%` : '—'}
             </div>
+          </div>
+        </div>
+
+        {/* Comentários */}
+        <div className={styles.descriptionSection} style={{ marginTop: 40 }}>
+          <div className={styles.sectionTitle}><MessageSquare size={20} /><h2>Comentários e Dúvidas</h2></div>
+
+          <form onSubmit={handleCommentSubmit} className={styles.commentForm}>
+            <textarea
+              placeholder={replyingTo ? "Escreva sua resposta..." : "Tem alguma dúvida ou sugestão? Comente aqui..."}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              className={styles.commentInput}
+              required
+            />
+            <div style={{ display:'flex', gap: 10, justifyContent: 'flex-end', marginTop: 10 }}>
+              {replyingTo && (
+                <button type="button" className={styles.cancelBtn} onClick={() => setReplyingTo(null)}>Cancelar</button>
+              )}
+              <button type="submit" className={styles.buttonPrimary} disabled={isCommenting}>
+                {isCommenting ? 'Enviando...' : (replyingTo ? 'Responder' : 'Comentar')}
+              </button>
+            </div>
+          </form>
+
+          <div className={styles.commentsList}>
+            {(ideia.comentarios ?? []).length === 0 && (
+              <p style={{ color: '#94a3b8', textAlign: 'center', padding: '20px 0' }}>Nenhum comentário ainda. Seja o primeiro!</p>
+            )}
+            {(ideia.comentarios ?? []).map(comment => (
+              <div key={comment.id} className={styles.commentItem}>
+                <div className={styles.commentHeader}>
+                  <div className={styles.commentUser}>
+                    <div className={styles.commentAvatar}>{comment.usuarioNome?.[0]}</div>
+                    <div>
+                      <strong>{comment.usuarioNome}</strong>
+                      <span>{new Date(comment.createDate).toLocaleDateString('pt-BR')}</span>
+                    </div>
+                  </div>
+                  <button className={styles.replyBtn} onClick={() => {
+                    setReplyingTo(comment.id);
+                    window.scrollTo({ top: document.querySelector(`.${styles.commentForm}`).offsetTop - 100, behavior: 'smooth' });
+                  }}>Responder</button>
+                </div>
+                <p className={styles.commentText}>{comment.texto}</p>
+
+                {/* Respostas */}
+                {(comment.replies ?? []).map(reply => (
+                  <div key={reply.id} className={styles.replyItem}>
+                    <div className={styles.commentHeader}>
+                      <div className={styles.commentUser}>
+                        <div className={styles.commentAvatar} style={{ width: 24, height: 24, fontSize: 10 }}>{reply.usuarioNome?.[0]}</div>
+                        <div>
+                          <strong style={{ fontSize: 13 }}>{reply.usuarioNome}</strong>
+                          <span style={{ fontSize: 11 }}>{new Date(reply.createDate).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <p className={styles.commentText} style={{ fontSize: 13 }}>{reply.texto}</p>
+                  </div>
+                ))}
+              </div>
+            ))}
           </div>
         </div>
       </div>

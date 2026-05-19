@@ -23,12 +23,24 @@ const CATEGORIAS = [
   { id: 15, nome: 'Outros'          },
 ];
 
+const ESTAGIOS = [
+  { id: 1, nome: 'Ideação' },
+  { id: 2, nome: 'MVP' },
+  { id: 3, nome: 'Tração' },
+  { id: 4, nome: 'Scale-up' },
+];
+
 function IdeiasList() {
   const [ideias, setIdeias]         = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoriaId, setCategoriaId] = useState('');
+  const [estagioId, setEstagioId] = useState('');
+  const [regiao, setRegiao] = useState('');
+  const [valorMin, setValorMin] = useState('');
+  const [valorMax, setValorMax] = useState('');
   const [loading, setLoading]       = useState(true);
   const [erro, setErro]             = useState(null);
+  const [showAdvanced, setShowAdvanced] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -38,8 +50,15 @@ function IdeiasList() {
       setErro(null);
 
       try {
-        const query = categoriaId ? `?categoriaId=${categoriaId}` : '';
-        const response = await apiRequest(`/api/ideias${query}`, {
+        const params = new URLSearchParams();
+        if (searchTerm) params.append('termo', searchTerm);
+        if (categoriaId) params.append('categoriaId', categoriaId);
+        if (estagioId) params.append('estagioId', estagioId);
+        if (regiao) params.append('regiao', regiao);
+        if (valorMin) params.append('valorMin', valorMin);
+        if (valorMax) params.append('valorMax', valorMax);
+
+        const response = await apiRequest(`/api/ideias?${params.toString()}`, {
           method: 'GET',
           headers: {
             Authorization: token ? `Bearer ${token}` : '',
@@ -60,20 +79,24 @@ function IdeiasList() {
       }
     };
 
-    fetchIdeias();
-  }, [categoriaId]); // re-fetch sempre que a categoria mudar
+    // Debounce search
+    const timer = setTimeout(() => {
+      fetchIdeias();
+    }, 300);
 
-  // Filtra localmente por nome após o fetch por categoria
-  const ideiasFiltradas = ideias.filter((ideia) =>
-    (ideia.idaNome ?? '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    return () => clearTimeout(timer);
+  }, [searchTerm, categoriaId, estagioId, regiao, valorMin, valorMax]);
 
   const limparFiltros = () => {
     setSearchTerm('');
     setCategoriaId('');
+    setEstagioId('');
+    setRegiao('');
+    setValorMin('');
+    setValorMax('');
   };
 
-  const temFiltroAtivo = searchTerm || categoriaId;
+  const temFiltroAtivo = searchTerm || categoriaId || estagioId || regiao || valorMin || valorMax;
 
   return (
     <div className={styles.page}>
@@ -93,86 +116,124 @@ function IdeiasList() {
           </div>
         </div>
 
-        {/* Barra de busca + filtro de categoria */}
+        {/* Barra de busca + filtros */}
         <div className={styles.toolbar}>
-          <div className={styles.searchWrapper}>
-            <Search size={20} className={styles.searchIcon} />
-            <input
-              type="text"
-              placeholder="Buscar ideias por nome..."
-              className={styles.searchInput}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+          <div className={styles.searchRow}>
+            <div className={styles.searchWrapper}>
+              <Search size={20} className={styles.searchIcon} />
+              <input
+                type="text"
+                placeholder="Buscar por nome ou descrição..."
+                className={styles.searchInput}
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
 
-          <div className={styles.filterWrapper}>
-            <Filter size={16} className={styles.filterIcon} />
             <select
-              className={styles.filterSelect}
+              className={styles.select}
               value={categoriaId}
               onChange={(e) => setCategoriaId(e.target.value)}
             >
-              <option value="">Todas as categorias</option>
-              {CATEGORIAS.map(c => (
-                <option key={c.id} value={c.id}>{c.nome}</option>
+              <option value="">Todas as Categorias</option>
+              {CATEGORIAS.map((cat) => (
+                <option key={cat.id} value={cat.id}>
+                  {cat.nome}
+                </option>
               ))}
             </select>
-          </div>
 
-          {temFiltroAtivo && (
-            <button className={styles.clearBtn} onClick={limparFiltros}>
-              <X size={14} /> Limpar
+            <button
+              className={`${styles.filterButton} ${showAdvanced ? styles.active : ''}`}
+              onClick={() => setShowAdvanced(!showAdvanced)}
+              title="Filtros Avançados"
+            >
+              <Filter size={20} />
             </button>
-          )}
-        </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className={styles.noResults}>
-            <Rocket size={48} className={styles.noResultsIcon} />
-            <p>Carregando ideias...</p>
-          </div>
-        )}
-
-        {/* Erro */}
-        {!loading && erro && (
-          <div className={styles.noResults}>
-            <Rocket size={48} className={styles.noResultsIcon} />
-            <p style={{ color: '#e53e3e', fontWeight: 700 }}>
-              Não foi possível carregar as ideias.
-            </p>
-            <p style={{ fontSize: 14 }}>{erro}</p>
-          </div>
-        )}
-
-        {/* Sem resultados na busca */}
-        {!loading && !erro && ideiasFiltradas.length === 0 && (
-          <div className={styles.noResults}>
-            <Lightbulb size={48} className={styles.noResultsIcon} />
-            <p>
-              {temFiltroAtivo
-                ? 'Nenhuma ideia encontrada com os filtros aplicados.'
-                : 'Nenhuma ideia cadastrada ainda.'}
-            </p>
             {temFiltroAtivo && (
-              <button className={styles.clearBtn} onClick={limparFiltros} style={{ marginTop: 12 }}>
-                <X size={14} /> Limpar filtros
+              <button className={styles.clearButton} onClick={limparFiltros} title="Limpar Filtros">
+                <X size={20} />
               </button>
             )}
           </div>
-        )}
 
-        {/* Grid de cards */}
-        {!loading && !erro && ideiasFiltradas.length > 0 && (
+          {showAdvanced && (
+            <div className={styles.advancedFilters}>
+              <div className={styles.filterGroup}>
+                <label>Estágio</label>
+                <select
+                  className={styles.select}
+                  value={estagioId}
+                  onChange={(e) => setEstagioId(e.target.value)}
+                >
+                  <option value="">Todos os Estágios</option>
+                  {ESTAGIOS.map((est) => (
+                    <option key={est.id} value={est.id}>
+                      {est.nome}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Região</label>
+                <input
+                  type="text"
+                  placeholder="Ex: São Paulo, SP"
+                  className={styles.input}
+                  value={regiao}
+                  onChange={(e) => setRegiao(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Valor Mínimo (R$)</label>
+                <input
+                  type="number"
+                  placeholder="0,00"
+                  className={styles.input}
+                  value={valorMin}
+                  onChange={(e) => setValorMin(e.target.value)}
+                />
+              </div>
+
+              <div className={styles.filterGroup}>
+                <label>Valor Máximo (R$)</label>
+                <input
+                  type="number"
+                  placeholder="Infinito"
+                  className={styles.input}
+                  value={valorMax}
+                  onChange={(e) => setValorMax(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Grid de Ideias */}
+        {loading ? (
+          <div className={styles.loadingArea}>
+            <div className={styles.spinner} />
+            <p>Carregando oportunidades...</p>
+          </div>
+        ) : erro ? (
+          <div className={styles.errorArea}>
+            <p>{erro}</p>
+            <button onClick={() => window.location.reload()}>Tentar novamente</button>
+          </div>
+        ) : ideias.length > 0 ? (
           <div className={styles.grid}>
-            {ideiasFiltradas.map((ideia) => (
-              <IdeiaCard
-                key={ideia.idaId}
-                ideia={ideia}
-                variant="default"
-              />
+            {ideias.map((ideia) => (
+              <IdeiaCard key={ideia.idaId} ideia={ideia} />
             ))}
+          </div>
+        ) : (
+          <div className={styles.emptyState}>
+            <Rocket size={48} className={styles.emptyIcon} />
+            <h3>Nenhuma ideia encontrada</h3>
+            <p>Tente ajustar seus filtros ou buscar por outro termo.</p>
           </div>
         )}
       </div>

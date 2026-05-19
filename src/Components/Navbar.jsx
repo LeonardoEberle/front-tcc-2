@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, User, LogOut, Menu, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
+import { getToken, getRoleFromToken } from '../utils/auth';
 import styles from './Navbar.module.css';
 import logo from '../assets/logo.png';
 
@@ -21,8 +22,6 @@ function Navbar() {
     }
     return () => { document.body.style.overflow = 'unset'; };
   }, [mobileMenuOpen]);
-
-  const getToken = () => localStorage.getItem('token');
 
   // SUA LÓGICA ORIGINAL DE FETCH (SEM ALTERAÇÕES)
   const fetchTudo = useCallback(async () => {
@@ -101,9 +100,16 @@ function Navbar() {
     { to: '/dashboard',      label: 'Home'            },
     { to: '/ideias',         label: 'Ideias'          },
     { to: '/minhas-ideias',  label: 'Minhas Ideias'   },
+    { to: '/chat',           label: 'Mensagens'       },
+    { to: '/premium',        label: 'Premium'         },
     { to: '/minhas-propostas', label: 'Minhas Propostas' },
     { to: '/perfil',         label: 'Meu Perfil'      },
   ];
+
+  const isAdmin = (getRoleFromToken(getToken() || '') || '').toLowerCase() === 'adm';
+  if (isAdmin) {
+    navLinks.unshift({ to: '/admin/dashboard', label: 'Dashboard ADM' });
+  }
 
   return (
     <nav className={styles.navbar}>

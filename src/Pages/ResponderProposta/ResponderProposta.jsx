@@ -9,6 +9,7 @@ import {
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './ResponderProposta.module.css';
 import { apiRequest } from '../../services/api';
+import { getToken } from '../../utils/auth';
 
 function ResponderProposta() {
   const { ideiaId } = useParams();
@@ -20,8 +21,6 @@ function ResponderProposta() {
   const [resultado, setResultado]               = useState(null);
   const [showCounterModal, setShowCounterModal] = useState(false);
   const [counterRetorno, setCounterRetorno]     = useState('');
-
-  const getToken = () => localStorage.getItem('token');
 
   useEffect(() => {
     const fetchProposta = async () => {
@@ -102,7 +101,7 @@ function ResponderProposta() {
     }
   };
 
-  // Contraproposta — usa o mesmo endpoint /responder com aceiteId=3 e retorno preenchido
+  // Contraproposta — usa o mesmo endpoint /responder com aceiteId=4 e retorno preenchido
   const enviarContraproposta = async (e) => {
     e.preventDefault();
     const token = getToken();
@@ -113,7 +112,7 @@ function ResponderProposta() {
       const res = await apiRequest(`/api/propostas/${proposta.prpId}/responder`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ aceiteId: 3, retorno: counterRetorno.trim() }),
+        body: JSON.stringify({ aceiteId: 4, retorno: counterRetorno.trim() }),
       });
       if (res.ok) {
         toast.success('Contraproposta enviada!', { id: toastId });

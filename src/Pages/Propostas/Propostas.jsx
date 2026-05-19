@@ -8,6 +8,7 @@ import {
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Propostas.module.css';
 import { apiRequest } from '../../services/api';
+import { getToken } from '../../utils/auth';
 
 function Propostas() {
   const { ideiaId } = useParams();
@@ -22,8 +23,6 @@ function Propostas() {
   const [counterSent, setCounterSent]           = useState(false);
   const [sendingAction, setSendingAction]       = useState(false);
   const [counterData, setCounterData]           = useState({ valor: '', fatia: '', mensagem: '' });
-
-  const getToken = () => localStorage.getItem('token');
 
   useEffect(() => {
     const fetchTudo = async () => {
@@ -157,7 +156,7 @@ function Propostas() {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        aceiteId: 3,
+        aceiteId: 4,
         retorno: counterData.mensagem,
       }),
     });
@@ -196,9 +195,12 @@ function Propostas() {
   const getStatusInfo = (proposta) => {
     const ultimo     = proposta.infos?.[proposta.infos.length - 1] ?? {};
     const aceiteNome = (ultimo.aceiteNome ?? '').toLowerCase();
+    
     if (aceiteNome.includes('aceit'))  return { label: 'Aceita',    cls: styles.statusAceita,   icon: <Check size={12} />, isPendente: false };
     if (aceiteNome.includes('recus'))  return { label: 'Recusada',  cls: styles.statusRecusada, icon: <X size={12} />,     isPendente: false };
     if (aceiteNome.includes('encerr')) return { label: 'Encerrada', cls: styles.statusRecusada, icon: <X size={12} />,     isPendente: false };
+    if (aceiteNome.includes('contra')) return { label: 'Contraproposta enviada', cls: styles.statusPendente, icon: <RefreshCcw size={12} />, isPendente: false };
+    
     // "pendente" ou qualquer outro valor = pendente
     return { label: 'Pendente', cls: styles.statusPendente, icon: <Clock size={12} />, isPendente: true };
   };
