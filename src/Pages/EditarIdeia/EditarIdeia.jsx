@@ -24,6 +24,13 @@ const CATEGORIAS = [
   { id: 15, nome: 'Outros'          },
 ];
 
+const ESTAGIOS = [
+  { id: 1, nome: 'Ideação' },
+  { id: 2, nome: 'MVP' },
+  { id: 3, nome: 'Tração' },
+  { id: 4, nome: 'Scale-up' },
+];
+
 function EditarIdeia() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -31,13 +38,16 @@ function EditarIdeia() {
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
   const [formData, setFormData] = useState({
-    nome:        '',
-    categoriaId: '',
-    cnpj:        '',
-    descricao:   '',
-    fatia:       '',
-    linkVideo:   '',
-    imagem:      '',
+    nome:          '',
+    categoriaId:   '',
+    estagioId:     '',
+    regiao:        '',
+    cnpj:          '',
+    descricao:     '',
+    fatia:         '',
+    valorCaptacao: '',
+    linkVideo:     '',
+    imagem:        '',
   });
 
   // Carrega os dados reais da ideia via GET /api/ideias/:id
@@ -60,13 +70,16 @@ function EditarIdeia() {
         const info = data.info ?? {};
 
         setFormData({
-          nome:        data.idaNome              ?? '',
-          categoriaId: String(data.idaCategoriaId ?? ''),
-          cnpj:        info.idaInfoCnpj          ?? '',
-          descricao:   info.idaInfoDescricao     ?? '',
-          fatia:       String(info.idaInfoFatia  ?? ''),
-          linkVideo:   info.idaInfoLinkVideo     ?? '',
-          imagem:      info.idaInfoImagem        ?? '',
+          nome:          data.idaNome              ?? '',
+          categoriaId:   String(data.idaCategoriaId ?? ''),
+          estagioId:     String(data.idaEstagioId   ?? ''),
+          regiao:        data.regiao                ?? '',
+          cnpj:          info.idaInfoCnpj          ?? '',
+          descricao:     info.idaInfoDescricao     ?? '',
+          fatia:         String(info.idaInfoFatia  ?? ''),
+          valorCaptacao: String(info.idaInfoValorCaptacao ?? ''),
+          linkVideo:     info.idaInfoLinkVideo     ?? '',
+          imagem:        info.idaInfoImagem        ?? '',
         });
       } catch {
         toast.error('Erro de conexão com o servidor.');
@@ -100,17 +113,20 @@ function EditarIdeia() {
       const res = await apiRequest(`/api/ideias/${id}`, {
         method: 'PUT',
         headers: {
-          Authorization: `Bearer ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          nome:        formData.nome        || null,
-          categoriaId: formData.categoriaId ? parseInt(formData.categoriaId) : null,
-          cnpj:        formData.cnpj        || null,
-          descricao:   formData.descricao   || null,
-          fatia:       formData.fatia       ? parseFloat(formData.fatia) : null,
-          linkVideo:   formData.linkVideo   || null,
-          imagem:      formData.imagem      || null,
+          nome:          formData.nome,
+          categoriaId:   parseInt(formData.categoriaId),
+          estagioId:     parseInt(formData.estagioId),
+          regiao:        formData.regiao,
+          cnpj:          formData.cnpj,
+          descricao:     formData.descricao,
+          fatia:         parseFloat(formData.fatia),
+          valorCaptacao: parseFloat(formData.valorCaptacao),
+          linkVideo:     formData.linkVideo,
+          imagem:        formData.imagem,
         }),
       });
 
@@ -172,7 +188,20 @@ function EditarIdeia() {
             />
           </div>
 
-          {/* Categoria + Fatia */}
+          {/* Região */}
+          <div className={styles.formGroup}>
+            <label className={styles.label}>📍 Região (Cidade/Estado)</label>
+            <input
+              type="text"
+              name="regiao"
+              className={styles.input}
+              value={formData.regiao}
+              onChange={handleChange}
+              placeholder="Ex: São Paulo, SP"
+            />
+          </div>
+
+          {/* Categoria + Estágio */}
           <div className={styles.gridFields}>
             <div className={styles.formGroup}>
               <label className={styles.label}><Tag size={14} /> Categoria</label>
@@ -191,6 +220,25 @@ function EditarIdeia() {
             </div>
 
             <div className={styles.formGroup}>
+              <label className={styles.label}>🚀 Estágio Atual</label>
+              <select
+                name="estagioId"
+                className={styles.input}
+                value={formData.estagioId}
+                onChange={handleChange}
+                required
+              >
+                <option value="">Selecione um estágio</option>
+                {ESTAGIOS.map(e => (
+                  <option key={e.id} value={e.id}>{e.nome}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Equity + Valor Captação */}
+          <div className={styles.gridFields}>
+            <div className={styles.formGroup}>
               <label className={styles.label}><PieChart size={14} /> Equity Disponível (%)</label>
               <input
                 type="number"
@@ -201,6 +249,18 @@ function EditarIdeia() {
                 min="0"
                 max="100"
                 step="0.1"
+                required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>💰 Valor de Captação (R$)</label>
+              <input
+                type="number"
+                name="valorCaptacao"
+                className={styles.input}
+                value={formData.valorCaptacao}
+                onChange={handleChange}
                 required
               />
             </div>
