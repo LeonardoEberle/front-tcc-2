@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, User, LogOut, Menu, X } from 'lucide-react';
+import { Bell, LogOut, Menu, X } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import { getToken, getRoleFromToken } from '../utils/auth';
 import styles from './Navbar.module.css';
@@ -9,11 +9,10 @@ import logo from '../assets/logo.png';
 
 function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen]       = useState(false);
-  const [notificacoes, setNotificacoes]           = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [notificacoes, setNotificacoes] = useState([]);
   const navigate = useNavigate();
 
-  // BLOQUEIO DE SCROLL: Impede o fundo de rolar quando o menu mobile está aberto
   useEffect(() => {
     if (mobileMenuOpen) {
       document.body.style.overflow = 'hidden';
@@ -23,23 +22,27 @@ function Navbar() {
     return () => { document.body.style.overflow = 'unset'; };
   }, [mobileMenuOpen]);
 
-  // SUA LÓGICA ORIGINAL DE FETCH (SEM ALTERAÇÕES)
   const fetchTudo = useCallback(async () => {
     const token = getToken();
     if (!token) return;
 
-    const resNtf = await fetch('/api/notificacoes/minhas', { headers: { Authorization: `Bearer ${token}` } });
+    const resNtf = await fetch('/api/notificacoes/minhas', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
     if (resNtf.ok) {
       const raw = await resNtf.json();
-      const normalizado = raw.map(n => ({
-        ntfId:      n.NtfId      ?? n.ntfId,
-        tipoId:     n.TipoId     ?? n.tipoId,
-        tipoNome:   n.TipoNome   ?? n.tipoNome,
-        mensagem:   n.Mensagem   ?? n.mensagem   ?? '(sem mensagem)',
-        lida:       n.Lida       ?? n.lida        ?? false,
-        createDate: n.CreateDate ?? n.createDate,
-      }));
+      const normalizado = raw
+        .map(n => ({
+          ntfId:      n.NtfId      ?? n.ntfId,
+          tipoId:     n.TipoId     ?? n.tipoId,
+          tipoNome:   n.TipoNome   ?? n.tipoNome,
+          mensagem:   n.Mensagem   ?? n.mensagem   ?? '(sem mensagem)',
+          lida:       n.Lida       ?? n.lida       ?? false,
+          createDate: n.CreateDate ?? n.createDate,
+        }))
+        // Remove notificações do tipo "prp recebida" (tipoId 5) — redundante para o empreendedor
+        .filter(n => n.tipoId !== 5);
       setNotificacoes(normalizado);
     }
   }, []);
@@ -50,10 +53,8 @@ function Navbar() {
     return () => clearInterval(interval);
   }, [fetchTudo]);
 
-  const todasNtf = notificacoes;
   const temNaoLidas = notificacoes.some(n => !n.lida);
 
-  // SUA LÓGICA ORIGINAL DE CLIQUE (RESTABELECIDA)
   const handleNotificationClick = async (notificacao) => {
     const token = getToken();
     setShowNotifications(false);
@@ -72,20 +73,23 @@ function Navbar() {
         });
       }
 
+      const tipoId   = notificacao.tipoId;
       const tipoNome = (notificacao.tipoNome ?? '').toLowerCase();
 
-      if (tipoNome.startsWith('prp ') && tipoNome !== 'prp recebida') {
+      // Notificações do investidor (aceita/recusada/contraproposta) → minhas-propostas
+      if ([1, 2, 6].includes(tipoId) || tipoNome.startsWith('prp')) {
         navigate('/minhas-propostas');
         return;
       }
 
+      // Alerta com #ID na mensagem (ex: contraproposta do empreendedor) → responder-proposta
       const ideiaId = (notificacao.mensagem ?? '').match(/ideia\s*#(\d+)/i)?.[1];
-      if (!ideiaId) {
-        toast.error('Não foi possível identificar a ideia desta notificação.');
+      if (ideiaId) {
+        navigate(`/responder-proposta/${ideiaId}`);
         return;
       }
 
-      navigate(`/responder-proposta/${ideiaId}`);
+      navigate('/dashboard');
     } catch {
       toast.error('Erro de conexão.');
     }
@@ -97,13 +101,13 @@ function Navbar() {
   };
 
   const navLinks = [
-    { to: '/dashboard',      label: 'Home'            },
-    { to: '/ideias',         label: 'Ideias'          },
-    { to: '/minhas-ideias',  label: 'Minhas Ideias'   },
-    { to: '/chat',           label: 'Mensagens'       },
-    { to: '/premium',        label: 'Premium'         },
+    { to: '/dashboard',        label: 'Home' },
+    { to: '/ideias',           label: 'Ideias' },
+    { to: '/minhas-ideias',    label: 'Minhas Ideias' },
+    { to: '/chat',             label: 'Mensagens' },
+    { to: '/premium',          label: 'Premium' },
     { to: '/minhas-propostas', label: 'Minhas Propostas' },
-    { to: '/perfil',         label: 'Meu Perfil'      },
+    { to: '/perfil',           label: 'Meu Perfil' },
   ];
 
   const isAdmin = (getRoleFromToken(getToken() || '') || '').toLowerCase() === 'adm';
@@ -115,11 +119,11 @@ function Navbar() {
     <nav className={styles.navbar}>
       <Toaster position="top-right" />
 
-      <Link to="/dashboard">
-        <img src={logo} alt="Logo" className={styles.logo} />
+      <Link to="/dashboard" className={styles.logo}>
+        <img src={logo} alt="Logo" height={65} />
       </Link>
 
-      {/* Menu desktop */}
+      {/* Links desktop */}
       <div className={`${styles.links} ${styles.desktopOnly}`}>
         {navLinks.map(link => (
           <Link key={link.to} to={link.to} className={styles.navLink}>
@@ -128,11 +132,15 @@ function Navbar() {
         ))}
       </div>
 
-      <div className={styles.actions}>
+      {/* Ações desktop */}
+      <div className={`${styles.actions} ${styles.desktopOnly}`}>
+
+        {/* Sino */}
         <div className={styles.iconWrapper}>
           <button
             className={styles.iconButton}
             onClick={() => setShowNotifications(!showNotifications)}
+            aria-label="Notificações"
           >
             <Bell size={22} />
             {temNaoLidas && <span className={styles.badge} />}
@@ -144,24 +152,24 @@ function Navbar() {
                 className={styles.popup}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{    opacity: 0, y: -8 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.18 }}
               >
                 <div className={styles.popupHeader}>
                   <h4>Notificações</h4>
                 </div>
 
-                {todasNtf.length === 0 ? (
-                  <p className={styles.emptyState}>Você não tem novas notificações no momento.</p>
+                {notificacoes.length === 0 ? (
+                  <p className={styles.emptyState}>
+                    Você não tem novas notificações no momento.
+                  </p>
                 ) : (
                   <ul className={styles.notificationList}>
-                    {todasNtf.map(n => (
+                    {notificacoes.map(n => (
                       <li
                         key={n.ntfId}
                         className={styles.notificationItem}
-                        style={{ 
-                          background: !n.lida ? '#f0f7ff' : undefined, 
-                          cursor: 'pointer' 
-                        }}
+                        style={{ cursor: 'pointer', opacity: n.lida ? 0.55 : 1 }}
                         onClick={() => handleNotificationClick(n)}
                       >
                         <p className={styles.ntfMessage}>{n.mensagem}</p>
@@ -179,44 +187,51 @@ function Navbar() {
           </AnimatePresence>
         </div>
 
-        <Link to="/perfil" className={`${styles.iconButton} ${styles.desktopOnly}`}>
-          <User size={22} />
-        </Link>
-
-        <button className={`${styles.logoutButton} ${styles.desktopOnly}`} onClick={handleLogout}>
-          <LogOut size={18} /> Sair
-        </button>
-
-        <button className={styles.menuMobile} onClick={() => setMobileMenuOpen(true)}>
-          <Menu size={26} />
+        {/* Logout */}
+        <button className={styles.logoutButton} onClick={handleLogout}>
+          <LogOut size={18} />
+          Sair
         </button>
       </div>
 
+      {/* Botão hamburguer mobile */}
+      <button
+        className={styles.menuMobile}
+        onClick={() => setMobileMenuOpen(true)}
+        aria-label="Abrir menu"
+      >
+        <Menu size={26} />
+      </button>
+
+      {/* Menu mobile */}
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            <motion.div 
+            <motion.div
               className={styles.overlay}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
             />
-            
             <motion.div
-              className={`${styles.links} ${styles.mobileOnly}`}
+              className={styles.mobileOnly}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
-              exit={{    x: '100%' }}
-              transition={{ type: 'tween', duration: 0.3 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'tween', duration: 0.25 }}
             >
               <div className={styles.mobileHeader}>
-                <button className={styles.closeButton} onClick={() => setMobileMenuOpen(false)}>
-                  <X size={28} />
+                <button
+                  className={styles.closeButton}
+                  onClick={() => setMobileMenuOpen(false)}
+                  aria-label="Fechar menu"
+                >
+                  <X size={26} />
                 </button>
               </div>
 
-              <div className={styles.mobileNav}>
+              <nav className={styles.mobileNav}>
                 {navLinks.map(link => (
                   <Link
                     key={link.to}
@@ -227,11 +242,14 @@ function Navbar() {
                     {link.label}
                   </Link>
                 ))}
-                <hr className={styles.divider} />
-                <button className={styles.mobileLogout} onClick={handleLogout}>
-                  <LogOut size={20} /> Sair da conta
-                </button>
-              </div>
+              </nav>
+
+              <hr className={styles.divider} />
+
+              <button className={styles.mobileLogout} onClick={handleLogout}>
+                <LogOut size={18} />
+                Sair da conta
+              </button>
             </motion.div>
           </>
         )}

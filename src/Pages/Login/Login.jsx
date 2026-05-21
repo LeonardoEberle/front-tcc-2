@@ -90,7 +90,7 @@ function Login() {
         <div className={styles.header}>
           <img src={logo} alt="Logo" className={styles.logo} />
           <h1 className={styles.title}>Bem-vindo</h1>
-          <p className={styles.subtitle}>Aceda à sua conta para continuar</p>
+          <p className={styles.subtitle}>Acesse a sua conta para continuar</p>
         </div>
 
         <form onSubmit={handleLogin}>

@@ -76,7 +76,7 @@ function Ideia() {
         usuarioId: Number(donoId),
         tipoId:    1,
         // ← ideiaId explícito no formato "ideia #3" para o Navbar extrair corretamente
-        mensagem:  `Você recebeu uma nova proposta na ideia #${ideiaId} - "${nomeIdeia}"!`,
+        mensagem:  `Você recebeu uma nova proposta na ideia ${ideiaId}!`,
       }),
     });
   } catch {
