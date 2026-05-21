@@ -4,6 +4,7 @@ import { Lightbulb, Search, Compass, Rocket, Filter, X } from 'lucide-react';
 import IdeiaCard from '../../Components/IdeiaCard/IdeiaCard';
 import styles from './IdeiasList.module.css';
 import { apiRequest } from '../../services/api';
+import { getToken, getRoleFromToken, getPlanFromToken } from '../../utils/auth';
 
 const CATEGORIAS = [
   { id: 1,  nome: 'Tecnologia'      },
@@ -38,14 +39,18 @@ function IdeiasList() {
   const [regiao, setRegiao] = useState('');
   const [valorMin, setValorMin] = useState('');
   const [valorMax, setValorMax] = useState('');
+  const [apenasComDocumentos, setApenasComDocumentos] = useState(false);
   const [loading, setLoading]       = useState(true);
   const [erro, setErro]             = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const navigate = useNavigate();
+  const token = getToken();
+  const role = (getRoleFromToken(token) || '').toLowerCase();
+  const plan = (getPlanFromToken(token) || '').toLowerCase();
+  const isEliteInvestidor = role === 'investidor' && plan === 'elite';
 
   useEffect(() => {
     const fetchIdeias = async () => {
-      const token = localStorage.getItem('token');
       setLoading(true);
       setErro(null);
 
@@ -57,6 +62,7 @@ function IdeiasList() {
         if (regiao) params.append('regiao', regiao);
         if (valorMin) params.append('valorMin', valorMin);
         if (valorMax) params.append('valorMax', valorMax);
+        if (apenasComDocumentos && isEliteInvestidor) params.append('apenasComDocumentos', 'true');
 
         const response = await apiRequest(`/api/ideias?${params.toString()}`, {
           method: 'GET',
@@ -85,7 +91,7 @@ function IdeiasList() {
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [searchTerm, categoriaId, estagioId, regiao, valorMin, valorMax]);
+  }, [searchTerm, categoriaId, estagioId, regiao, valorMin, valorMax, apenasComDocumentos, isEliteInvestidor, token]);
 
   const limparFiltros = () => {
     setSearchTerm('');
@@ -94,9 +100,10 @@ function IdeiasList() {
     setRegiao('');
     setValorMin('');
     setValorMax('');
+    setApenasComDocumentos(false);
   };
 
-  const temFiltroAtivo = searchTerm || categoriaId || estagioId || regiao || valorMin || valorMax;
+  const temFiltroAtivo = searchTerm || categoriaId || estagioId || regiao || valorMin || valorMax || apenasComDocumentos;
 
   return (
     <div className={styles.page}>
@@ -208,6 +215,20 @@ function IdeiasList() {
                   onChange={(e) => setValorMax(e.target.value)}
                 />
               </div>
+
+              {isEliteInvestidor && (
+                <div className={styles.filterGroup}>
+                  <label>
+                    <input
+                      type="checkbox"
+                      checked={apenasComDocumentos}
+                      onChange={(e) => setApenasComDocumentos(e.target.checked)}
+                      style={{ marginRight: 8 }}
+                    />
+                    Somente com documentos (Elite)
+                  </label>
+                </div>
+              )}
             </div>
           )}
         </div>

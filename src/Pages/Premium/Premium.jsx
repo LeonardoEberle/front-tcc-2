@@ -4,14 +4,19 @@ import { apiRequest } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import styles from './Premium.module.css';
+import { getToken, getRoleFromToken, getPlanFromToken } from '../../utils/auth';
 
 function Premium() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const token = getToken();
+  const role = (getRoleFromToken(token) || '').toLowerCase();
+  const currentPlan = (getPlanFromToken(token) || '').toLowerCase();
 
   const planos = [
     {
       nome: 'Básico',
+      codigo: 'basico',
       preco: 'Grátis',
       descricao: 'Para quem está começando',
       features: ['Até 2 ideias ativas', 'Comentários públicos', 'Chat limitado'],
@@ -20,6 +25,7 @@ function Premium() {
     },
     {
       nome: 'Pro',
+      codigo: 'pro',
       preco: 'R$ 49,90',
       descricao: 'Ideal para empreendedores sérios',
       features: ['Ideias ilimitadas', 'Destaque nas buscas', 'Chat prioritário', 'Análise de métricas'],
@@ -29,9 +35,10 @@ function Premium() {
     },
     {
       nome: 'Investidor Elite',
+      codigo: 'elite',
       preco: 'R$ 199,90',
       descricao: 'Acesso exclusivo a oportunidades',
-      features: ['Filtros avançados', 'Relatórios jurídicos', 'Suporte VIP', 'Selo de investidor verificado'],
+      features: ['Somente com documentos (filtro)', 'Relatório de due diligence (download)', 'Prioridade nas propostas', 'Selo de investidor verificado'],
       color: '#1e293b',
       premium: true,
       valor: 199.90
@@ -39,6 +46,12 @@ function Premium() {
   ];
 
   const handleAssinar = async (plano) => {
+    if (!token) {
+      toast.error('Faça login para assinar um plano.');
+      navigate('/login');
+      return;
+    }
+
     if (!plano.premium) {
       toast.success('Você já possui o plano básico!');
       return;
@@ -46,24 +59,25 @@ function Premium() {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      const response = await apiRequest('/api/pagamentos/simular', {
+      const response = await apiRequest('/api/planos/assinar', {
         method: 'POST',
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          valor: plano.valor,
-          descricao: `Assinatura Plano ${plano.nome}`
+          planoCodigo: plano.codigo
         })
       });
 
       if (response.ok) {
-        toast.success(`Parabéns! Você agora é ${plano.nome}! (Simulação concluída)`);
+        const data = await response.json().catch(() => ({}));
+        if (data.token) localStorage.setItem('token', data.token);
+        toast.success(data.mensagem ?? `Plano atualizado para ${plano.nome}.`);
         navigate('/perfil');
       } else {
-        toast.error('Erro ao processar pagamento simulado.');
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao atualizar plano.');
       }
     } catch (error) {
       toast.error('Erro de conexão.');
@@ -80,7 +94,9 @@ function Premium() {
       </div>
 
       <div className={styles.grid}>
-        {planos.map((plano, index) => (
+        {planos
+          .filter(p => !p.premium || (p.codigo === 'pro' ? role === 'empreendedor' : role === 'investidor'))
+          .map((plano, index) => (
           <div key={index} className={`${styles.card} ${plano.nome === 'Pro' ? styles.featured : ''}`}>
             {plano.nome === 'Pro' && <div className={styles.badge}>Mais Popular</div>}
             <div className={styles.cardHeader}>
@@ -101,9 +117,9 @@ function Premium() {
             <button 
               className={plano.premium ? styles.btnPremium : styles.btnFree}
               onClick={() => handleAssinar(plano)}
-              disabled={loading}
+              disabled={loading || (plano.codigo && plano.codigo === currentPlan)}
             >
-              {loading ? 'Processando...' : (plano.premium ? 'Assinar Agora' : 'Plano Atual')}
+              {loading ? 'Processando...' : ((plano.codigo && plano.codigo === currentPlan) ? 'Plano Atual' : (plano.premium ? 'Assinar Agora' : 'Plano Atual'))}
             </button>
           </div>
         ))}

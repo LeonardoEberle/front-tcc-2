@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Send, User, Rocket, MessageCircle } from 'lucide-react';
 import { apiRequest } from '../../services/api';
 import { toast } from 'react-hot-toast';
 import styles from './Chat.module.css';
+import { getToken, getUsuarioId } from '../../utils/auth';
 
 function Chat() {
   const [conversas, setConversas] = useState([]);
@@ -12,7 +13,7 @@ function Chat() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
-  const userId = parseInt(localStorage.getItem('userId'));
+  const userId = Number(getUsuarioId());
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -34,15 +35,19 @@ function Chat() {
 
   const fetchConversas = async () => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await apiRequest('/api/chat/conversas', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         setConversas(await response.json());
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao carregar conversas.');
       }
     } catch (error) {
       console.error('Erro ao buscar conversas:', error);
+      toast.error('Erro de conexão.');
     } finally {
       setLoading(false);
     }
@@ -50,15 +55,19 @@ function Chat() {
 
   const fetchMensagens = async (conversaId) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await apiRequest(`/api/chat/conversas/${conversaId}/mensagens`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
         setMensagens(await response.json());
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao carregar mensagens.');
       }
     } catch (error) {
       console.error('Erro ao buscar mensagens:', error);
+      toast.error('Erro de conexão.');
     }
   };
 
@@ -68,7 +77,7 @@ function Chat() {
 
     setSending(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = getToken();
       const response = await apiRequest(`/api/chat/conversas/${conversaAtiva.id}/mensagens`, {
         method: 'POST',
         headers: {
@@ -82,9 +91,12 @@ function Chat() {
         setNovaMensagem('');
         fetchMensagens(conversaAtiva.id);
         fetchConversas(); // Atualiza a lista lateral com a última mensagem
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao enviar mensagem.');
       }
     } catch (error) {
-      toast.error('Erro ao enviar mensagem');
+      toast.error('Erro de conexão.');
     } finally {
       setSending(false);
     }
