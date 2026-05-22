@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Lightbulb, Search, Compass, Rocket, Filter, X } from 'lucide-react';
 import IdeiaCard from '../../Components/IdeiaCard/IdeiaCard';
 import styles from './IdeiasList.module.css';
@@ -43,7 +42,6 @@ function IdeiasList() {
   const [loading, setLoading]       = useState(true);
   const [erro, setErro]             = useState(null);
   const [showAdvanced, setShowAdvanced] = useState(false);
-  const navigate = useNavigate();
   const token = getToken();
   const role = (getRoleFromToken(token) || '').toLowerCase();
   const plan = (getPlanFromToken(token) || '').toLowerCase();

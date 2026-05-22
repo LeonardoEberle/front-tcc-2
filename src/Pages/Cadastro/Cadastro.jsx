@@ -8,6 +8,8 @@ import { apiRequest } from '../../services/api';
 
 function Cadastro() {
   const navigate = useNavigate();
+  const MotionDiv = motion.div;
+  const MotionButton = motion.button;
   
   // Estado ajustado para os campos do back-end
   const [formData, setFormData] = useState({
@@ -71,7 +73,7 @@ function Cadastro() {
     <div className={styles.page}>
       <Toaster position="top-center" />
 
-      <motion.div 
+      <MotionDiv 
         className={styles.container}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -183,14 +185,14 @@ function Cadastro() {
             </select>
           </div>
 
-          <motion.button 
+          <MotionButton 
             type="submit" 
             className={styles.button}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
             Finalizar Cadastro
-          </motion.button>
+          </MotionButton>
         </form>
 
         <div className={styles.linkArea}>
@@ -198,7 +200,7 @@ function Cadastro() {
             Já tem uma conta? <Link to="/login" className={styles.linkHighlight}>Entrar</Link>
           </p>
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 }

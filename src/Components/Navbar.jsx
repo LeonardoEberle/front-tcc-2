@@ -12,6 +12,7 @@ function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [notificacoes, setNotificacoes] = useState([]);
   const navigate = useNavigate();
+  const MotionDiv = motion.div;
 
   useEffect(() => {
     if (mobileMenuOpen) {
@@ -48,9 +49,12 @@ function Navbar() {
   }, []);
 
   useEffect(() => {
-    fetchTudo();
+    const timeoutId = setTimeout(fetchTudo, 0);
     const interval = setInterval(fetchTudo, 30000);
-    return () => clearInterval(interval);
+    return () => {
+      clearTimeout(timeoutId);
+      clearInterval(interval);
+    };
   }, [fetchTudo]);
 
   const temNaoLidas = notificacoes.some(n => !n.lida);
@@ -148,7 +152,7 @@ function Navbar() {
 
           <AnimatePresence>
             {showNotifications && (
-              <motion.div
+              <MotionDiv
                 className={styles.popup}
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -182,7 +186,7 @@ function Navbar() {
                     ))}
                   </ul>
                 )}
-              </motion.div>
+              </MotionDiv>
             )}
           </AnimatePresence>
         </div>
@@ -207,14 +211,14 @@ function Navbar() {
       <AnimatePresence>
         {mobileMenuOpen && (
           <>
-            <motion.div
+            <MotionDiv
               className={styles.overlay}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMobileMenuOpen(false)}
             />
-            <motion.div
+            <MotionDiv
               className={styles.mobileOnly}
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
@@ -250,7 +254,7 @@ function Navbar() {
                 <LogOut size={18} />
                 Sair da conta
               </button>
-            </motion.div>
+            </MotionDiv>
           </>
         )}
       </AnimatePresence>

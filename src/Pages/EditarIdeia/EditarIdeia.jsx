@@ -34,6 +34,8 @@ const ESTAGIOS = [
 function EditarIdeia() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const MotionDiv = motion.div;
+  const MotionButton = motion.button;
 
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
@@ -159,7 +161,7 @@ function EditarIdeia() {
       <Toaster position="top-right" />
       <div className={styles.blob} />
 
-      <motion.div
+      <MotionDiv
         className={styles.container}
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -318,7 +320,7 @@ function EditarIdeia() {
           </div>
 
           <div className={styles.buttonGroup}>
-            <motion.button
+            <MotionButton
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
               type="submit"
@@ -326,7 +328,7 @@ function EditarIdeia() {
               disabled={saving}
             >
               <Save size={18} /> {saving ? 'Salvando...' : 'Salvar Alterações'}
-            </motion.button>
+            </MotionButton>
             <button
               type="button"
               className={styles.btnCancel}
@@ -337,7 +339,7 @@ function EditarIdeia() {
           </div>
 
         </form>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 }

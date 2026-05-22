@@ -17,6 +17,7 @@ function Ideia() {
   const token = getToken();
   const role = (getRoleFromToken(token) || '').toLowerCase();
   const plan = (getPlanFromToken(token) || '').toLowerCase();
+  const MotionDiv = motion.div;
 
   const [ideia, setIdeia]                     = useState(null);
   const [loading, setLoading]                 = useState(true);
@@ -150,7 +151,8 @@ function Ideia() {
         if (response.status === 403) {
           msg = 'Acesso negado. Apenas investidores podem enviar proposta.';
         } else {
-          try { const err = await response.json(); msg = err.message || err.title || msg; } catch {}
+          const err = await response.json().catch(() => ({}));
+          msg = err.message || err.title || msg;
         }
         toast.error(`${response.status}: ${msg}`, { id: toastId });
       }
@@ -556,9 +558,9 @@ function Ideia() {
 
       <AnimatePresence>
         {showProposal && !isOwner && role === 'investidor' && (
-          <motion.div className={styles.modalOverlay} initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
+          <MotionDiv className={styles.modalOverlay} initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
             onClick={(e) => e.target === e.currentTarget && setShowProposal(false)}>
-            <motion.div className={styles.modalContent} initial={{ scale:0.9, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0.9, opacity:0 }}>
+            <MotionDiv className={styles.modalContent} initial={{ scale:0.9, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0.9, opacity:0 }}>
               <button className={styles.closeModal} onClick={() => setShowProposal(false)}><X size={18} /></button>
 
               {proposalSent ? (
@@ -594,8 +596,8 @@ function Ideia() {
                   </form>
                 </>
               )}
-            </motion.div>
-          </motion.div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
     </div>

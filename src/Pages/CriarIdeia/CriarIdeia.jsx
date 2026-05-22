@@ -34,6 +34,8 @@ const ESTAGIOS = [
 function CriarIdeia() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const MotionForm = motion.form;
+  const MotionButton = motion.button;
 
   const [formData, setFormData] = useState({
     categoriaId: '',
@@ -143,7 +145,7 @@ function CriarIdeia() {
         </div>
 
         {/* Formulário */}
-        <motion.form
+        <MotionForm
           className={styles.form}
           onSubmit={handleSubmit}
           initial={{ opacity: 0, y: 20 }}
@@ -307,7 +309,7 @@ function CriarIdeia() {
             >
               Cancelar
             </button>
-            <motion.button
+            <MotionButton
               type="submit"
               className={styles.btnPublicar}
               disabled={loading}
@@ -316,10 +318,10 @@ function CriarIdeia() {
             >
               <Send size={18} />
               {loading ? 'Publicando...' : 'Publicar Ideia'}
-            </motion.button>
+            </MotionButton>
           </div>
 
-        </motion.form>
+        </MotionForm>
       </div>
     </div>
   );

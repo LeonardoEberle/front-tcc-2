@@ -27,7 +27,7 @@ function AdminDashboard() {
 
       if (resStats.ok) setStats(await resStats.json());
       if (resDenuncias.ok) setDenuncias(await resDenuncias.json());
-    } catch (err) {
+    } catch {
       toast.error('Erro ao carregar dados administrativos.');
     } finally {
       setLoading(false);
@@ -50,7 +50,7 @@ function AdminDashboard() {
         toast.success(`Denúncia ${status.toLowerCase()} com sucesso!`);
         fetchData();
       }
-    } catch (err) {
+    } catch {
       toast.error('Erro ao processar denúncia.');
     }
   };
