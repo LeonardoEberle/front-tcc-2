@@ -13,6 +13,7 @@ import { getToken } from '../../utils/auth';
 function Propostas() {
   const { ideiaId } = useParams();
   const navigate    = useNavigate();
+  const MotionDiv = motion.div;
 
   const [ideia, setIdeia]         = useState(null);
   const [propostas, setPropostas] = useState([]);
@@ -137,7 +138,8 @@ function Propostas() {
         ));
       } else {
         let msg = 'Erro ao processar.';
-        try { const err = await res.json(); msg = err.message ?? err.title ?? msg; } catch {}
+        const err = await res.json().catch(() => ({}));
+        msg = err.message ?? err.title ?? msg;
         toast.error(msg, { id: toastId });
       }
     } catch {
@@ -210,7 +212,8 @@ function Propostas() {
       }, 2500);
     } else {
       let msg = 'Erro ao enviar contraproposta.';
-      try { const err = await res.json(); msg = err.message ?? err.title ?? msg; } catch {}
+      const err = await res.json().catch(() => ({}));
+      msg = err.message ?? err.title ?? msg;
       toast.error(msg, { id: toastId });
     }
   } catch {
@@ -285,7 +288,7 @@ function Propostas() {
               const status  = getStatusInfo(p);
 
               return (
-                <motion.div
+                <MotionDiv
                   key={p.prpId}
                   className={styles.propostaCard}
                   initial={{ opacity: 0, y: 20 }}
@@ -350,7 +353,7 @@ function Propostas() {
                       </button>
                     </div>
                   ) : null)}
-                </motion.div>
+                </MotionDiv>
               );
             })}
           </div>
@@ -360,9 +363,9 @@ function Propostas() {
       {/* Modal de Contraproposta */}
       <AnimatePresence>
         {showCounterModal && (
-          <motion.div className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+          <MotionDiv className={styles.modalOverlay} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={(e) => e.target === e.currentTarget && setShowCounterModal(false)}>
-            <motion.div className={styles.modalContent} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}>
+            <MotionDiv className={styles.modalContent} initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}>
               <button className={styles.closeModal} onClick={() => setShowCounterModal(false)}><X size={18} /></button>
 
               {counterSent ? (
@@ -399,8 +402,8 @@ function Propostas() {
                   </form>
                 </>
               )}
-            </motion.div>
-          </motion.div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
     </div>

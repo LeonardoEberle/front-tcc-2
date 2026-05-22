@@ -79,7 +79,7 @@ function Premium() {
         const err = await response.json().catch(() => ({}));
         toast.error(err.message ?? err.title ?? 'Erro ao atualizar plano.');
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro de conexão.');
     } finally {
       setLoading(false);

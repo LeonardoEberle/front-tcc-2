@@ -14,6 +14,7 @@ import { getToken } from '../../utils/auth';
 function ResponderProposta() {
   const { ideiaId } = useParams();
   const navigate    = useNavigate();
+  const MotionDiv = motion.div;
 
   const [proposta, setProposta]                 = useState(null);
   const [loading, setLoading]                   = useState(true);
@@ -191,7 +192,7 @@ function ResponderProposta() {
           </div>
         </div>
 
-        <motion.div
+        <MotionDiv
           className={styles.card}
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0  }}
@@ -259,17 +260,17 @@ function ResponderProposta() {
               <XCircle size={16} /> Recusar
             </button>
           </div>
-        </motion.div>
+        </MotionDiv>
       </div>
 
       <AnimatePresence>
         {showCounterModal && (
-          <motion.div
+          <MotionDiv
             className={styles.modalOverlay}
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={(e) => e.target === e.currentTarget && setShowCounterModal(false)}
           >
-            <motion.div
+            <MotionDiv
               className={styles.modalContent}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1,   opacity: 1 }}
@@ -318,8 +319,8 @@ function ResponderProposta() {
                   {sending ? 'Enviando...' : <><Send size={16} /> Enviar Contraproposta</>}
                 </button>
               </form>
-            </motion.div>
-          </motion.div>
+            </MotionDiv>
+          </MotionDiv>
         )}
       </AnimatePresence>
     </div>

@@ -37,6 +37,7 @@ function MinhasPropostas() {
   const [role, setRole]           = useState('');
   const token = getToken();
   const plan = (getPlanFromToken(token) || '').toLowerCase();
+  const MotionDiv = motion.div;
 
   useEffect(() => {
     const fetchPropostas = async () => {
@@ -234,7 +235,7 @@ function MinhasPropostas() {
               const isFechada        = (ultimo.aceiteNome || '').includes('aceit') || (ultimo.aceiteNome || '').includes('recus');
 
               return (
-                <motion.div
+                <MotionDiv
                   key={p.prpId}
                   initial={{ opacity: 0, y: 16 }}
                   animate={{ opacity: 1, y: 0  }}
@@ -353,7 +354,7 @@ function MinhasPropostas() {
                       Responder
                     </button>
                   )}
-                </motion.div>
+                </MotionDiv>
               );
             })}
           </div>

@@ -95,7 +95,7 @@ function Chat() {
         const err = await response.json().catch(() => ({}));
         toast.error(err.message ?? err.title ?? 'Erro ao enviar mensagem.');
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro de conexão.');
     } finally {
       setSending(false);

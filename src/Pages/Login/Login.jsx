@@ -12,6 +12,8 @@ function Login() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [erros, setErros] = useState({});
+  const MotionDiv = motion.div;
+  const MotionButton = motion.button;
 
   const validar = () => {
     const novosErros = {};
@@ -81,7 +83,7 @@ function Login() {
 
   return (
     <div className={styles.page}>
-      <motion.div
+      <MotionDiv
         className={styles.container}
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -124,14 +126,14 @@ function Login() {
             {erros.senha && <span className={styles.error}>{erros.senha}</span>}
           </div>
 
-          <motion.button
+          <MotionButton
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             type="submit"
             className={styles.button}
           >
             Entrar
-          </motion.button>
+          </MotionButton>
         </form>
 
         <div className={styles.linksArea}>
@@ -145,7 +147,7 @@ function Login() {
             </Link>
           </p>
         </div>
-      </motion.div>
+      </MotionDiv>
     </div>
   );
 }

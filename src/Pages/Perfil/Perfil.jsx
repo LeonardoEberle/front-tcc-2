@@ -161,7 +161,7 @@ function Perfil() {
         const errorData = await response.json();
         toast.error(errorData.message || 'Erro ao atualizar perfil.', { id: toastId });
       }
-    } catch (error) {
+    } catch {
       toast.error('Erro de conexão.', { id: toastId });
     }
   };
