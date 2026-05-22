@@ -59,6 +59,8 @@ function Propostas() {
               prpIdeiaId: p.PrpIdeiaId  ?? p.prpIdeiaId,
               usuarioId:  p.PrpUsuarioId ?? p.prpUsuarioId,
               prpStatus:  p.PrpStatus   ?? p.prpStatus,
+              investidorPlanoCodigo: p.InvestidorPlanoCodigo ?? p.investidorPlanoCodigo,
+              investidorPlanoNome: p.InvestidorPlanoNome ?? p.investidorPlanoNome,
               infos,
             };
           });
@@ -142,6 +144,38 @@ function Propostas() {
       toast.error('Erro de conexão.', { id: toastId });
     } finally {
       setSendingAction(false);
+    }
+  };
+
+  const handleStartChat = async (proposta) => {
+    const token = getToken();
+    if (!token) {
+      toast.error('Faça login para conversar com o investidor.');
+      return;
+    }
+
+    try {
+      const response = await apiRequest('/api/chat/mensagens', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paraUsuarioId: Number(proposta.usuarioId),
+          ideiaId: Number(proposta.prpIdeiaId),
+          texto: 'Olá! Sua proposta foi aceita. Podemos alinhar os próximos passos?',
+        }),
+      });
+
+      if (response.ok) {
+        navigate('/chat');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao iniciar conversa.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
     }
   };
 
@@ -261,7 +295,9 @@ function Propostas() {
                     <div className={styles.investidorInfo}>
                       <div className={styles.avatar}><User size={20} /></div>
                       <div>
-                        <span className={styles.investidorLabel}>Investidor</span>
+                      <span className={styles.investidorLabel}>
+                        Investidor{p.investidorPlanoCodigo === 'elite' ? ' • Elite' : ''}
+                      </span>
                         <strong className={styles.investidorId}>ID #{p.usuarioId}</strong>
                       </div>
                     </div>
@@ -301,13 +337,19 @@ function Propostas() {
                     )}
                   </div>
 
-                  {status.isPendente && (
+                  {status.isPendente ? (
                     <div className={styles.cardActions}>
                       <button className={styles.btnAccept}  onClick={() => handleAction(p, 'accept')}  disabled={sendingAction}><Check size={15} /> Aceitar</button>
                       <button className={styles.btnCounter} onClick={() => handleAction(p, 'counter')} disabled={sendingAction}><RefreshCcw size={15} /> Contraproposta</button>
                       <button className={styles.btnReject}  onClick={() => handleAction(p, 'reject')}  disabled={sendingAction}><X size={15} /> Recusar</button>
                     </div>
-                  )}
+                  ) : ((ultimo.aceiteNome ?? '').toLowerCase().includes('aceit') ? (
+                    <div className={styles.cardActions}>
+                      <button className={styles.btnCounter} onClick={() => handleStartChat(p)} disabled={sendingAction}>
+                        <MessageSquare size={15} /> Conversar
+                      </button>
+                    </div>
+                  ) : null)}
                 </motion.div>
               );
             })}

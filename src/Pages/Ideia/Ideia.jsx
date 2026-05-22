@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -9,11 +9,14 @@ import {
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Ideia.module.css';
 import { apiRequest } from '../../services/api';
-import { getUsuarioId } from '../../utils/auth';
+import { getToken, getRoleFromToken, getUsuarioId, getPlanFromToken } from '../../utils/auth';
 
 function Ideia() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const token = getToken();
+  const role = (getRoleFromToken(token) || '').toLowerCase();
+  const plan = (getPlanFromToken(token) || '').toLowerCase();
 
   const [ideia, setIdeia]                     = useState(null);
   const [loading, setLoading]                 = useState(true);
@@ -22,6 +25,7 @@ function Ideia() {
   const [proposalSent, setProposalSent]       = useState(false);
   const [sendingProposal, setSendingProposal] = useState(false);
   const [proposalData, setProposalData]       = useState({ valor: '', fatia: '', mensagem: '' });
+  const [canChat, setCanChat]                 = useState(false);
 
   // Comentários
   const [commentText, setCommentText] = useState('');
@@ -30,7 +34,6 @@ function Ideia() {
 
   useEffect(() => {
     const fetchIdeia = async () => {
-      const token = localStorage.getItem('token');
       try {
         const response = await apiRequest(`/api/ideias/${id}`, {
           headers: {
@@ -49,25 +52,43 @@ function Ideia() {
     fetchIdeia();
   }, [id]);
 
-  // Decodifica o usuarioId do JWT sem biblioteca externa
-  const getUsuarioId = () => {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return (
-        payload.sub ??
-        payload.nameid ??
-        payload['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier'] ??
-        null
-      );
-    } catch {
-      return null;
-    }
-  };
+  useEffect(() => {
+    if (role !== 'investidor') setShowProposal(false);
+  }, [role]);
+
+  useEffect(() => {
+    const verificarChat = async () => {
+      if (!token || role !== 'investidor') { setCanChat(false); return; }
+      if (isOwner) { setCanChat(false); return; }
+
+      try {
+        const res = await apiRequest('/api/propostas/minhas', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!res.ok) { setCanChat(false); return; }
+
+        const raw = await res.json();
+        const ideiaIdNum = Number(id);
+        const propostas = Array.isArray(raw) ? raw : [];
+        const minha = propostas.find(p => Number(p.PrpIdeiaId ?? p.prpIdeiaId) === ideiaIdNum);
+        if (!minha) { setCanChat(false); return; }
+
+        const infos = minha.Infos ?? minha.infos ?? [];
+        const ultima = infos[infos.length - 1] ?? {};
+        const aceiteId = ultima.AceiteId ?? ultima.aceiteId;
+        const aceiteNome = String(ultima.AceiteNome ?? ultima.aceiteNome ?? '').toLowerCase();
+        setCanChat(aceiteId === 1 || aceiteNome.includes('aceit'));
+      } catch {
+        setCanChat(false);
+      }
+    };
+
+    verificarChat();
+  }, [token, role, id, isOwner]);
 
   // ── PEÇA-CHAVE: dispara notificação para o dono via POST /api/notificacoes ──
-  const dispararNotificacaoDono = async (token, donoId, ideiaId, nomeIdeia) => {
+  const dispararNotificacaoDono = async (token, donoId, ideiaId) => {
   try {
     await apiRequest('/api/notificacoes/disparar', {
       method: 'POST',
@@ -86,8 +107,8 @@ function Ideia() {
 
   const handleProposalSubmit = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('token');
     if (!token) { toast.error('Você precisa estar logado.'); return; }
+    if (role !== 'investidor') { toast.error('Apenas investidores podem enviar proposta.'); return; }
 
     setSendingProposal(true);
     const toastId = toast.loading('Enviando proposta...');
@@ -110,9 +131,12 @@ function Ideia() {
         toast.success('Proposta enviada com sucesso!', { id: toastId });
 
         // ── Notifica o dono da ideia ──────────────────────────────────
-        const donoId    = ideia?.idaUsuarioId ?? ideia?.usuarioId;
-        const nomeIdeia = ideia?.idaNome ?? `Ideia #${id}`;
-        if (donoId) await dispararNotificacaoDono(token, donoId, nomeIdeia);
+        const donoId =
+          ideia?.idaUsuarioId ??
+          ideia?.IdaUsuarioId ??
+          ideia?.usuarioId ??
+          ideia?.UsuarioId;
+        if (donoId) await dispararNotificacaoDono(token, donoId, Number(id));
         // ─────────────────────────────────────────────────────────────
 
         setProposalSent(true);
@@ -123,7 +147,11 @@ function Ideia() {
         }, 3000);
       } else {
         let msg = 'Erro ao enviar proposta.';
-        try { const err = await response.json(); msg = err.message || err.title || msg; } catch {}
+        if (response.status === 403) {
+          msg = 'Acesso negado. Apenas investidores podem enviar proposta.';
+        } else {
+          try { const err = await response.json(); msg = err.message || err.title || msg; } catch {}
+        }
         toast.error(`${response.status}: ${msg}`, { id: toastId });
       }
     } catch (error) {
@@ -180,9 +208,26 @@ function Ideia() {
   };
 
   const handleStartChat = async () => {
-    const token = localStorage.getItem('token');
+    const token = getToken();
     if (!token) {
       toast.error('Faça login para conversar com o empreendedor.');
+      return;
+    }
+    if (!canChat) {
+      toast.error('Conversa disponível apenas após uma proposta ser aceita.');
+      return;
+    }
+
+    const paraUsuarioId =
+      ideia?.idaUsuarioId ??
+      ideia?.IdaUsuarioId ??
+      ideia?.usuarioId ??
+      ideia?.UsuarioId;
+
+    const ideiaId = ideia?.idaId ?? ideia?.IdaId ?? Number(id);
+
+    if (!paraUsuarioId) {
+      toast.error('Não foi possível identificar o empreendedor desta ideia.');
       return;
     }
 
@@ -194,8 +239,8 @@ function Ideia() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          paraUsuarioId: ideia.idaUsuarioId,
-          ideiaId: ideia.idaId,
+          paraUsuarioId: Number(paraUsuarioId),
+          ideiaId: ideiaId ? Number(ideiaId) : null,
           texto: "Olá! Gostaria de saber mais sobre sua ideia."
         })
       });
@@ -203,7 +248,41 @@ function Ideia() {
       if (response.ok) {
         navigate('/chat');
       } else {
-        toast.error('Erro ao iniciar conversa.');
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao iniciar conversa.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
+    }
+  };
+
+  const handleDownloadRelatorio = async () => {
+    if (!token) {
+      toast.error('Faça login para baixar o relatório.');
+      return;
+    }
+    if (role !== 'investidor' || plan !== 'elite') {
+      toast.error('Recurso disponível apenas para investidores Elite.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/ideias/${id}/relatorio`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Relatorio-Ideia-${id}.md`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        toast.success('Relatório baixado com sucesso!');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao baixar relatório.');
       }
     } catch {
       toast.error('Erro de conexão.');
@@ -238,7 +317,7 @@ function Ideia() {
   };
 
   const usuarioLogadoId = String(getUsuarioId() ?? '');
-  const donoIdeia       = String(ideia?.idaUsuarioId ?? ideia?.usuarioId ?? '');
+  const donoIdeia       = String(ideia?.idaUsuarioId ?? ideia?.IdaUsuarioId ?? ideia?.usuarioId ?? ideia?.UsuarioId ?? '');
   const isOwner         = usuarioLogadoId && donoIdeia && usuarioLogadoId === donoIdeia;
 
   if (loading) return (
@@ -367,15 +446,26 @@ function Ideia() {
 
         <div className={styles.actionsArea}>
           {/* Investidor vê botão de enviar proposta */}
-          {!isOwner && (
+          {!isOwner && role === 'investidor' && (
             <div className={styles.actionCard}>
               <div className={styles.cardHeader}><MessageSquare size={22} color="#0d47a1" /><h3>Fazer Proposta</h3></div>
               <p>Demonstre seu interesse e envie uma proposta de investimento ao empreendedor.</p>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                 <button className={styles.buttonPrimary} onClick={() => setShowProposal(true)}>Enviar Proposta</button>
-                <button className={styles.buttonSecondary} onClick={handleStartChat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 12, border: '1.5px solid #0d47a1', background: 'transparent', color: '#0d47a1', fontWeight: 700, cursor: 'pointer' }}>
-                  <MessageSquare size={18} /> Conversar com Empreendedor
-                </button>
+                {plan === 'elite' && (
+                  <button className={styles.buttonSecondary} onClick={handleDownloadRelatorio} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 12, border: '1.5px solid #0d47a1', background: 'transparent', color: '#0d47a1', fontWeight: 700, cursor: 'pointer' }}>
+                    <Rocket size={18} /> Baixar Relatório (Elite)
+                  </button>
+                )}
+                {canChat ? (
+                  <button className={styles.buttonSecondary} onClick={handleStartChat} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, padding: '12px', borderRadius: 12, border: '1.5px solid #0d47a1', background: 'transparent', color: '#0d47a1', fontWeight: 700, cursor: 'pointer' }}>
+                    <MessageSquare size={18} /> Conversar com Empreendedor
+                  </button>
+                ) : (
+                  <p style={{ margin: 0, fontSize: 13, color: '#94a3b8' }}>
+                    Mensagens liberadas após uma proposta ser aceita.
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -465,7 +555,7 @@ function Ideia() {
       </div>
 
       <AnimatePresence>
-        {showProposal && !isOwner && (
+        {showProposal && !isOwner && role === 'investidor' && (
           <motion.div className={styles.modalOverlay} initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
             onClick={(e) => e.target === e.currentTarget && setShowProposal(false)}>
             <motion.div className={styles.modalContent} initial={{ scale:0.9, opacity:0 }} animate={{ scale:1, opacity:1 }} exit={{ scale:0.9, opacity:0 }}>

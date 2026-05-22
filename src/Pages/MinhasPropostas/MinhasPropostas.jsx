@@ -7,7 +7,7 @@ import {
   CheckCircle, XCircle, RefreshCcw, MessageSquare, Rocket, FileText
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
-import { getToken, getRoleFromToken } from '../../utils/auth';
+import { getToken, getPlanFromToken, getRoleFromToken } from '../../utils/auth';
 
 const normalizeProposta = (p) => {
   const infos = (p.Infos ?? p.infos ?? []).map(i => ({
@@ -35,6 +35,8 @@ function MinhasPropostas() {
   const [loading, setLoading]     = useState(true);
   const [sending, setSending]     = useState(null);
   const [role, setRole]           = useState('');
+  const token = getToken();
+  const plan = (getPlanFromToken(token) || '').toLowerCase();
 
   useEffect(() => {
     const fetchPropostas = async () => {
@@ -106,7 +108,78 @@ function MinhasPropostas() {
         a.remove();
         toast.success('Contrato baixado com sucesso!');
       } else {
-        toast.error('Erro ao baixar contrato.');
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao baixar contrato.');
+      }
+    } catch {
+      toast.error('Erro de conexão.');
+    }
+  };
+
+  const handleStartChat = async (proposta) => {
+    const token = getToken();
+    if (!token) {
+      toast.error('Faça login para conversar.');
+      return;
+    }
+
+    try {
+      const isEmpreendedor = role === 'empreendedor';
+
+      if (isEmpreendedor) {
+        const response = await apiRequest('/api/chat/mensagens', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            paraUsuarioId: Number(proposta.prpUsuarioId),
+            ideiaId: Number(proposta.prpIdeiaId),
+            texto: 'Olá! Sua proposta foi aceita. Podemos alinhar os próximos passos?',
+          }),
+        });
+
+        if (response.ok) {
+          navigate('/chat');
+        } else {
+          const err = await response.json().catch(() => ({}));
+          toast.error(err.message ?? err.title ?? 'Erro ao iniciar conversa.');
+        }
+
+        return;
+      }
+
+      const resIdeia = await apiRequest(`/api/ideias/${proposta.prpIdeiaId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const ideia = resIdeia.ok ? await resIdeia.json() : null;
+      const empreendedorId = ideia?.IdaUsuarioId ?? ideia?.idaUsuarioId ?? ideia?.UsuarioId ?? ideia?.usuarioId;
+
+      if (!empreendedorId) {
+        toast.error('Não foi possível identificar o empreendedor desta ideia.');
+        return;
+      }
+
+      const response = await apiRequest('/api/chat/mensagens', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          paraUsuarioId: Number(empreendedorId),
+          ideiaId: Number(proposta.prpIdeiaId),
+          texto: 'Olá! Minha proposta foi aceita. Podemos alinhar os próximos passos?',
+        }),
+      });
+
+      if (response.ok) {
+        navigate('/chat');
+      } else {
+        const err = await response.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao iniciar conversa.');
       }
     } catch {
       toast.error('Erro de conexão.');
@@ -252,14 +325,24 @@ function MinhasPropostas() {
                     </p>
                   )}
 
-                  {/* Botão de Download de Contrato se aceita */}
+                  {/* Botões pós-aceite */}
                   {(ultimo.aceiteNome || '').includes('aceit') && (
-                    <button
-                      style={{ ...s.btnPrimary, background: '#22c55e', marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
-                      onClick={() => handleDownloadContrato(p.prpId)}
-                    >
-                      <FileText size={18} /> Baixar Termo de Investimento
-                    </button>
+                    <>
+                      {((role === 'investidor' && plan === 'elite') || (role === 'empreendedor' && plan === 'pro')) && (
+                        <button
+                          style={{ ...s.btnPrimary, background: '#22c55e', marginTop: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                          onClick={() => handleDownloadContrato(p.prpId)}
+                        >
+                          <FileText size={18} /> Baixar Termo de Investimento
+                        </button>
+                      )}
+                      <button
+                        style={{ ...s.btnPrimary, marginTop: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
+                        onClick={() => handleStartChat(p)}
+                      >
+                        <MessageSquare size={18} /> Iniciar Conversa
+                      </button>
+                    </>
                   )}
 
                   {role === 'empreendedor' && !isFechada && (
