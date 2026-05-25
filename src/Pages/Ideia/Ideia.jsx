@@ -33,6 +33,10 @@ function Ideia() {
   const [isCommenting, setIsCommenting] = useState(false);
   const [replyingTo, setReplyingTo] = useState(null); // id do comentário pai
 
+    const usuarioLogadoId = String(getUsuarioId() ?? '');
+  const donoIdeia       = String(ideia?.idaUsuarioId ?? ideia?.IdaUsuarioId ?? ideia?.usuarioId ?? ideia?.UsuarioId ?? '');
+  const isOwner         = usuarioLogadoId && donoIdeia && usuarioLogadoId === donoIdeia;
+
   useEffect(() => {
     const fetchIdeia = async () => {
       try {
@@ -318,9 +322,7 @@ function Ideia() {
     }
   };
 
-  const usuarioLogadoId = String(getUsuarioId() ?? '');
-  const donoIdeia       = String(ideia?.idaUsuarioId ?? ideia?.IdaUsuarioId ?? ideia?.usuarioId ?? ideia?.UsuarioId ?? '');
-  const isOwner         = usuarioLogadoId && donoIdeia && usuarioLogadoId === donoIdeia;
+
 
   if (loading) return (
     <div className={styles.page}>
