@@ -151,7 +151,7 @@ function IdeiasList() {
       ]);
 
       setIdeias(data);
-    } catch (error) {
+    } catch {
       setChatHistory((prev) => [
         ...prev,
         {

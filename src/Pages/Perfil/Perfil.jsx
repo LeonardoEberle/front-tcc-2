@@ -19,6 +19,7 @@ function Perfil() {
     email: '',
     telefone: '',
     descricao: '',
+    historia: '',
     cep: '',
     dataNascimento: '',
     linkRedesSociais: '',
@@ -65,6 +66,7 @@ function Perfil() {
             email:            data.usuEmail                         || '',
             telefone:         data.usuTelefone                      || '',
             descricao:        data.perfil?.descricao                || '',
+            historia:        data.perfil?.historia                 || '',
             cep:              data.perfil?.cep                      || '',
             dataNascimento:   data.perfil?.dataNasc
                                 ? data.perfil.dataNasc.split('T')[0]
@@ -141,6 +143,7 @@ function Perfil() {
           inativar:  null,
           perfil: {
             descricao:        formData.descricao        || null,
+            historia:        formData.historia        || null,
             cep:              formData.cep              || null,
             dataNasc:         formData.dataNascimento   || null,
             linkRedes:        formData.linkRedesSociais || null,
@@ -428,6 +431,30 @@ function Perfil() {
               </div>
             </div>
           </div>
+
+          {(formData.cargoNome || '').toLowerCase() === 'empreendedor' && (
+            <div className={`${styles.card} ${styles.fullWidth}`}>
+              <h3 className={styles.cardTitle}>Jornada dos Founders</h3>
+              <div className={styles.infoRow}>
+                <AlignLeft size={18} className={styles.icon} />
+                <div className={styles.field} style={{ width: '100%' }}>
+                  {isEditing ? (
+                    <textarea
+                      name="historia"
+                      value={formData.historia}
+                      onChange={handleChange}
+                      className={styles.textareaInline}
+                      placeholder="Conte a história: como começou, experiências anteriores, principais aprendizados e conquistas..."
+                    />
+                  ) : (
+                    <p className={styles.bioText}>
+                      {formData.historia || 'Conte sua jornada e a trajetória do time fundador.'}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Card: Preferências de Notificação (Módulo 7) */}
           <div className={`${styles.card} ${styles.fullWidth}`}>

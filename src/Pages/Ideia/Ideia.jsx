@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronLeft, PlayCircle, MessageSquare, Info,
   User, PieChart, X, CheckCircle, Send, Rocket, FileText,
-  AlertCircle
+  AlertCircle, BarChart3
 } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './Ideia.module.css';
@@ -356,6 +356,12 @@ function Ideia() {
   const fatia      = info.idaInfoFatia;
   const linkVideo  = info.idaInfoLinkVideo;
   const cnpj       = info.idaInfoCnpj;
+  const valorCaptacao = info.idaInfoValorCaptacao;
+  const faturamento = info.idaInfoFaturamento;
+  const custosMensais = info.idaInfoCustosMensais;
+  const tempoMercadoMeses = info.idaInfoTempoMercadoMeses;
+  const quantidadeClientes = info.idaInfoQuantidadeClientes;
+  const feedbackClientes = info.idaInfoFeedbackClientes;
   const documentos = ideia.documentos ?? [];
   const isAtivo    = statusId === 1 || String(statusNome ?? '').toLowerCase().includes('ativ');
 
@@ -421,6 +427,65 @@ function Ideia() {
           <div className={styles.descriptionSection}>
             <div className={styles.sectionTitle}><Info size={20} /><h2>Sobre a Ideia</h2></div>
             <p className={styles.description}>{descricao}</p>
+          </div>
+        )}
+
+        {(valorCaptacao != null ||
+          faturamento != null ||
+          custosMensais != null ||
+          tempoMercadoMeses != null ||
+          quantidadeClientes != null ||
+          (feedbackClientes && String(feedbackClientes).trim())) && (
+          <div className={styles.descriptionSection} style={{ marginBottom: 40 }}>
+            <div className={styles.sectionTitle}><BarChart3 size={20} /><h2>Métricas</h2></div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+              {valorCaptacao != null && (
+                <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                  <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700 }}>Captação</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                    {Number(valorCaptacao).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                </div>
+              )}
+              {faturamento != null && (
+                <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                  <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700 }}>Faturamento</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                    {Number(faturamento).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                </div>
+              )}
+              {custosMensais != null && (
+                <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                  <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700 }}>Custos mensais</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                    {Number(custosMensais).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                  </div>
+                </div>
+              )}
+              {tempoMercadoMeses != null && (
+                <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                  <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700 }}>Tempo de mercado</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                    {Number(tempoMercadoMeses)} meses
+                  </div>
+                </div>
+              )}
+              {quantidadeClientes != null && (
+                <div style={{ padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                  <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700 }}>Quantidade de clientes</div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: '#0f172a' }}>
+                    {Number(quantidadeClientes).toLocaleString('pt-BR')}
+                  </div>
+                </div>
+              )}
+            </div>
+            {feedbackClientes && String(feedbackClientes).trim() && (
+              <div style={{ marginTop: 14, padding: 14, border: '1px solid #e2e8f0', borderRadius: 14, background: 'white' }}>
+                <div style={{ color: '#64748b', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Feedback de clientes</div>
+                <div style={{ color: '#334155', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{feedbackClientes}</div>
+              </div>
+            )}
           </div>
         )}
 

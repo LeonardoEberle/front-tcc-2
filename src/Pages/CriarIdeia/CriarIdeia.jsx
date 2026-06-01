@@ -48,6 +48,11 @@ function CriarIdeia() {
     imagem: '',
     fatia: '',
     valorCaptacao: '',
+    faturamento: '',
+    custosMensais: '',
+    tempoMercadoMeses: '',
+    quantidadeClientes: '',
+    feedbackClientes: '',
   });
 
   const [erros, setErros] = useState({});
@@ -105,6 +110,11 @@ function CriarIdeia() {
           imagem:        formData.imagem,
           fatia:         parseFloat(formData.fatia),
           valorCaptacao: parseFloat(formData.valorCaptacao),
+          faturamento: formData.faturamento ? parseFloat(formData.faturamento) : null,
+          custosMensais: formData.custosMensais ? parseFloat(formData.custosMensais) : null,
+          tempoMercadoMeses: formData.tempoMercadoMeses ? parseInt(formData.tempoMercadoMeses) : null,
+          quantidadeClientes: formData.quantidadeClientes ? parseInt(formData.quantidadeClientes) : null,
+          feedbackClientes: formData.feedbackClientes?.trim() ? formData.feedbackClientes : null,
         }),
       });
 
@@ -255,6 +265,50 @@ function CriarIdeia() {
               />
               {erros.valorCaptacao && <span className={styles.errorText}>{erros.valorCaptacao}</span>}
             </div>
+
+            <div className={styles.inputGroup}>
+              <label>Faturamento (R$) (opcional)</label>
+              <input
+                type="number"
+                name="faturamento"
+                placeholder="Ex: 120000"
+                value={formData.faturamento}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>Custos mensais (R$) (opcional)</label>
+              <input
+                type="number"
+                name="custosMensais"
+                placeholder="Ex: 35000"
+                value={formData.custosMensais}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>Tempo de mercado (meses) (opcional)</label>
+              <input
+                type="number"
+                name="tempoMercadoMeses"
+                placeholder="Ex: 18"
+                value={formData.tempoMercadoMeses}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label>Quantidade de clientes (opcional)</label>
+              <input
+                type="number"
+                name="quantidadeClientes"
+                placeholder="Ex: 250"
+                value={formData.quantidadeClientes}
+                onChange={handleChange}
+              />
+            </div>
           </div>
 
           {/* Descrição */}
@@ -269,6 +323,18 @@ function CriarIdeia() {
               rows={5}
             />
             {erros.descricao && <span className={styles.error}>{erros.descricao}</span>}
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}>Feedback de clientes (opcional)</label>
+            <textarea
+              name="feedbackClientes"
+              value={formData.feedbackClientes}
+              onChange={handleChange}
+              className={styles.textarea}
+              placeholder="Ex: Principais elogios, críticas e aprendizados com clientes..."
+              rows={4}
+            />
           </div>
 
 

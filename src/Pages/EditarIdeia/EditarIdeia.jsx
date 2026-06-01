@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import toast, { Toaster } from 'react-hot-toast';
-import { Rocket, Tag, PieChart, Video, FileText, Image, ChevronLeft, Save } from 'lucide-react';
+import { Rocket, Tag, PieChart, Video, FileText, Image, ChevronLeft, Save, MessageCircle } from 'lucide-react';
 import styles from './EditarIdeia.module.css';
 import { apiRequest } from '../../services/api';
 
@@ -50,6 +50,11 @@ function EditarIdeia() {
     valorCaptacao: '',
     linkVideo:     '',
     imagem:        '',
+    faturamento:   '',
+    custosMensais: '',
+    tempoMercadoMeses: '',
+    quantidadeClientes: '',
+    feedbackClientes: '',
   });
 
   // Carrega os dados reais da ideia via GET /api/ideias/:id
@@ -82,6 +87,11 @@ function EditarIdeia() {
           valorCaptacao: String(info.idaInfoValorCaptacao ?? ''),
           linkVideo:     info.idaInfoLinkVideo     ?? '',
           imagem:        info.idaInfoImagem        ?? '',
+          faturamento:   String(info.idaInfoFaturamento ?? ''),
+          custosMensais: String(info.idaInfoCustosMensais ?? ''),
+          tempoMercadoMeses: String(info.idaInfoTempoMercadoMeses ?? ''),
+          quantidadeClientes: String(info.idaInfoQuantidadeClientes ?? ''),
+          feedbackClientes: info.idaInfoFeedbackClientes ?? '',
         });
       } catch {
         toast.error('Erro de conexão com o servidor.');
@@ -129,6 +139,11 @@ function EditarIdeia() {
           valorCaptacao: parseFloat(formData.valorCaptacao),
           linkVideo:     formData.linkVideo,
           imagem:        formData.imagem,
+          faturamento: formData.faturamento ? parseFloat(formData.faturamento) : null,
+          custosMensais: formData.custosMensais ? parseFloat(formData.custosMensais) : null,
+          tempoMercadoMeses: formData.tempoMercadoMeses ? parseInt(formData.tempoMercadoMeses) : null,
+          quantidadeClientes: formData.quantidadeClientes ? parseInt(formData.quantidadeClientes) : null,
+          feedbackClientes: formData.feedbackClientes?.trim() ? formData.feedbackClientes : null,
         }),
       });
 
@@ -281,6 +296,62 @@ function EditarIdeia() {
             />
           </div>
 
+          <div className={styles.gridFields}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>📈 Faturamento (R$) (opcional)</label>
+              <input
+                type="number"
+                name="faturamento"
+                className={styles.input}
+                value={formData.faturamento}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>🧾 Custos mensais (R$) (opcional)</label>
+              <input
+                type="number"
+                name="custosMensais"
+                className={styles.input}
+                value={formData.custosMensais}
+                onChange={handleChange}
+                min="0"
+                step="0.01"
+              />
+            </div>
+          </div>
+
+          <div className={styles.gridFields}>
+            <div className={styles.formGroup}>
+              <label className={styles.label}>⏳ Tempo de mercado (meses) (opcional)</label>
+              <input
+                type="number"
+                name="tempoMercadoMeses"
+                className={styles.input}
+                value={formData.tempoMercadoMeses}
+                onChange={handleChange}
+                min="0"
+                step="1"
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label className={styles.label}>👥 Quantidade de clientes (opcional)</label>
+              <input
+                type="number"
+                name="quantidadeClientes"
+                className={styles.input}
+                value={formData.quantidadeClientes}
+                onChange={handleChange}
+                min="0"
+                step="1"
+              />
+            </div>
+          </div>
+
           {/* Link do Vídeo */}
           <div className={styles.formGroup}>
             <label className={styles.label}><Video size={14} /> Link do Vídeo (YouTube/Vimeo)</label>
@@ -316,6 +387,18 @@ function EditarIdeia() {
               value={formData.descricao}
               onChange={handleChange}
               rows={5}
+            />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}><MessageCircle size={14} /> Feedback de clientes (opcional)</label>
+            <textarea
+              name="feedbackClientes"
+              className={styles.textarea}
+              value={formData.feedbackClientes}
+              onChange={handleChange}
+              rows={4}
+              placeholder="Ex: Principais elogios, críticas e aprendizados com clientes..."
             />
           </div>
 
