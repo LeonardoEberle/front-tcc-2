@@ -21,14 +21,18 @@ function Dashboard() {
     const fetchData = async () => {
       try {
         const [resIdeias, resPropostas, resConversas] = await Promise.all([
-          apiRequest('/api/ideias'),
-          token ? apiRequest(role === 'empreendedor' ? '/api/propostas/recebidas' : '/api/propostas/minhas', {
-            headers: { Authorization: `Bearer ${token}` }
-          }) : Promise.resolve({ ok: false }),
-          token ? apiRequest('/api/chat/conversas', {
-            headers: { Authorization: `Bearer ${token}` }
-          }) : Promise.resolve({ ok: false })
-        ]);
+  token ? apiRequest('/api/ideias', {
+    headers: { Authorization: `Bearer ${token}` }
+  }) : Promise.resolve({ ok: false }),
+
+  token ? apiRequest(role === 'empreendedor' ? '/api/propostas/recebidas' : '/api/propostas/minhas', {
+    headers: { Authorization: `Bearer ${token}` }
+  }) : Promise.resolve({ ok: false }),
+
+  token ? apiRequest('/api/chat/conversas', {
+    headers: { Authorization: `Bearer ${token}` }
+  }) : Promise.resolve({ ok: false })
+]);
 
         if (resIdeias.ok) {
           const data = await resIdeias.json();
