@@ -5,6 +5,7 @@ import { Lightbulb, ArrowLeft, Send } from 'lucide-react';
 import toast, { Toaster } from 'react-hot-toast';
 import styles from './CriarIdeia.module.css';
 import { apiRequest } from '../../services/api';
+import { digitsOnly, formatCnpj } from '../../utils/masks';
 
 const CATEGORIAS = [
   { id: 1,  nome: 'Tecnologia'      },
@@ -59,6 +60,11 @@ function CriarIdeia() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'cnpj') {
+      setFormData(prev => ({ ...prev, [name]: formatCnpj(value) }));
+      if (erros[name]) setErros(prev => ({ ...prev, [name]: '' }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
     if (erros[name]) setErros(prev => ({ ...prev, [name]: '' }));
   };
@@ -66,7 +72,7 @@ function CriarIdeia() {
   const validar = () => {
     const novosErros = {};
     if (!formData.nome.trim())      novosErros.nome      = 'O nome é obrigatório.';
-    if (!formData.cnpj.trim())      novosErros.cnpj      = 'O CNPJ é obrigatório.';
+    if (!digitsOnly(formData.cnpj)) novosErros.cnpj      = 'O CNPJ é obrigatório.';
     if (!formData.descricao.trim())  novosErros.descricao = 'A descrição é obrigatória.';
     if (!formData.fatia)            novosErros.fatia     = 'Informe a fatia (%) oferecida.';
     if (!formData.valorCaptacao)    novosErros.valorCaptacao = 'Informe o valor de captação.';
@@ -234,6 +240,8 @@ function CriarIdeia() {
                 value={formData.cnpj}
                 onChange={handleChange}
                 className={erros.cnpj ? styles.inputError : ''}
+                inputMode="numeric"
+                pattern="[0-9]{2}[.][0-9]{3}[.][0-9]{3}[/][0-9]{4}[-][0-9]{2}"
               />
               {erros.cnpj && <span className={styles.errorText}>{erros.cnpj}</span>}
             </div>

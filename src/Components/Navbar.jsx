@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, LogOut, Menu, X } from 'lucide-react';
-import toast, { Toaster } from 'react-hot-toast';
+import toast from 'react-hot-toast';
 import { getToken, getRoleFromToken } from '../utils/auth';
 import styles from './Navbar.module.css';
 import logo from '../assets/logo.png';
@@ -121,8 +121,6 @@ function Navbar() {
 
   return (
     <nav className={styles.navbar}>
-      <Toaster position="top-right" />
-
       <Link to="/dashboard" className={styles.logo}>
         <img src={logo} alt="Logo" height={65} />
       </Link>

@@ -5,6 +5,7 @@ import toast, { Toaster } from 'react-hot-toast';
 import { Rocket, Tag, PieChart, Video, FileText, Image, ChevronLeft, Save, MessageCircle } from 'lucide-react';
 import styles from './EditarIdeia.module.css';
 import { apiRequest } from '../../services/api';
+import { formatCnpj } from '../../utils/masks';
 
 const CATEGORIAS = [
   { id: 1,  nome: 'Tecnologia'      },
@@ -39,6 +40,8 @@ function EditarIdeia() {
 
   const [loading, setLoading]   = useState(true);
   const [saving, setSaving]     = useState(false);
+  const [docFile, setDocFile]   = useState(null);
+  const [uploadingDoc, setUploadingDoc] = useState(false);
   const [formData, setFormData] = useState({
     nome:          '',
     categoriaId:   '',
@@ -106,7 +109,45 @@ function EditarIdeia() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    if (name === 'cnpj') {
+      setFormData(prev => ({ ...prev, [name]: formatCnpj(value) }));
+      return;
+    }
     setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleUploadDocumento = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.error('Você precisa estar logado.');
+      return;
+    }
+    if (!docFile) return;
+
+    setUploadingDoc(true);
+    const toastId = toast.loading('Enviando documento...');
+    try {
+      const fd = new FormData();
+      fd.append('arquivo', docFile);
+
+      const res = await fetch(`/api/ideias/${id}/documentos`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+
+      if (res.ok) {
+        toast.success('Documento enviado!', { id: toastId });
+        setDocFile(null);
+      } else {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Erro ao enviar documento.', { id: toastId });
+      }
+    } catch {
+      toast.error('Erro de conexão com o servidor.', { id: toastId });
+    } finally {
+      setUploadingDoc(false);
+    }
   };
 
   const handleSave = async (e) => {
@@ -293,7 +334,29 @@ function EditarIdeia() {
               value={formData.cnpj}
               onChange={handleChange}
               placeholder="00.000.000/0000-00"
+              inputMode="numeric"
+              pattern="[0-9]{2}[.][0-9]{3}[.][0-9]{3}[/][0-9]{4}[-][0-9]{2}"
             />
+          </div>
+
+          <div className={styles.formGroup}>
+            <label className={styles.label}><FileText size={14} /> Documento (PDF)</label>
+            <input
+              type="file"
+              accept="application/pdf"
+              className={styles.input}
+              onChange={(e) => setDocFile(e.target.files?.[0] ?? null)}
+            />
+            <MotionButton
+              type="button"
+              className={styles.btnUpload}
+              onClick={handleUploadDocumento}
+              disabled={!docFile || uploadingDoc}
+              whileHover={{ scale: uploadingDoc ? 1 : 1.02 }}
+              whileTap={{ scale: uploadingDoc ? 1 : 0.98 }}
+            >
+              {uploadingDoc ? 'Enviando...' : 'Enviar Documento'}
+            </MotionButton>
           </div>
 
           <div className={styles.gridFields}>

@@ -173,6 +173,30 @@ function Ideia() {
     setProposalData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const abrirDocumento = async (url) => {
+    const token = getToken();
+    if (!token) { toast.error('Faça login para visualizar documentos.'); return; }
+    try {
+      const res = await apiRequest(url, {
+        method: 'GET',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        toast.error(err.message ?? err.title ?? 'Não foi possível abrir o documento.');
+        return;
+      }
+
+      const blob = await res.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      window.open(objectUrl, '_blank', 'noopener,noreferrer');
+      setTimeout(() => URL.revokeObjectURL(objectUrl), 60_000);
+    } catch {
+      toast.error('Erro de conexão.');
+    }
+  };
+
   const handleCommentSubmit = async (e) => {
     e.preventDefault();
     if (!commentText.trim()) return;
@@ -504,9 +528,13 @@ function Ideia() {
             <ul style={{ listStyle:'none', display:'flex', flexDirection:'column', gap:10 }}>
               {documentos.map((doc) => (
                 <li key={doc.idaDocumentoId}>
-                  <a href={doc.arquivo} target="_blank" rel="noopener noreferrer" style={{ display:'inline-flex', alignItems:'center', gap:8, color:'#0d47a1', fontWeight:600, textDecoration:'none', fontSize:14 }}>
+                  <button
+                    type="button"
+                    onClick={() => abrirDocumento(doc.arquivo)}
+                    style={{ display:'inline-flex', alignItems:'center', gap:8, color:'#0d47a1', fontWeight:600, textDecoration:'none', fontSize:14, background:'transparent', border:'none', padding:0, cursor:'pointer' }}
+                  >
                     <FileText size={15} /> Documento #{doc.idaDocumentoId}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>

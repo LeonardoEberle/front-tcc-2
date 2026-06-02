@@ -37,7 +37,7 @@ function Login() {
     setErros(novosErros);
 
     if (Object.keys(novosErros).length === 0) {
-      const toastId = toast.loading("A verificar credenciais...");
+      const toastId = toast.loading("A verificar credenciais...", { duration: Infinity });
 
       try {
         // Usando a porta 5153 que localizámos no seu terminal
@@ -65,16 +65,16 @@ function Login() {
 
           localStorage.setItem("user", JSON.stringify({ id: userId }));
 
-          toast.success("Login bem-sucedido!", { id: toastId });
-          setTimeout(() => navigate("/dashboard"), 1500);
+          toast.dismiss(toastId);
+          navigate("/dashboard");
         } else {
           const errorData = await response.json().catch(() => ({}));
-          toast.error(errorData.message || "Credenciais inválidas.", { id: toastId });
+          toast.error(errorData.message || "Credenciais inválidas.", { id: toastId, duration: 3000 });
         }
       } catch (error) {
         toast.error(
           "Erro ao conectar ao servidor. Verifique se o back-end está ligado.",
-          { id: toastId },
+          { id: toastId, duration: 3000 },
         );
         console.error("Erro de Login:", error);
       }

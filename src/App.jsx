@@ -47,6 +47,13 @@ function HomeRedirect() {
   return <Navigate to="/dashboard" replace />;
 }
 
+function RequireAuth({ children }) {
+  const token = getToken();
+  const location = useLocation();
+  if (!token) return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  return children;
+}
+
 
 function App() {
   return (
@@ -54,31 +61,31 @@ function App() {
       <Toaster
         position="top-right"
         toastOptions={{
-          duration: 3500,
+          duration: 3000,
           success: { duration: 3000 },
-          error:   { duration: 4000 },
-          loading: { duration: Infinity },
+          error:   { duration: 3000 },
+          loading: { duration: 3000 },
         }}
       />
       <Layout>
         <Routes>
           <Route path="/" element={<HomeRedirect />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
           <Route path="/login" element={<Login />} />
           <Route path="/cadastro" element={<Cadastro />} />
           <Route path="/recup-senha" element={<RecupSenha />} />
-          <Route path="/ideias" element={<IdeiasList />} />
-          <Route path="/minhas-ideias" element={<MinhasIdeias />} />
-          <Route path="/perfil" element={<Perfil />} />
-          <Route path="/ideia/:id" element={<Ideia />} />
-          <Route path="/editar-ideia/:id" element={<EditarIdeia />} />
-          <Route path="/propostas/:ideiaId" element={<Propostas />} />
-          <Route path="/criar-ideia" element={<CriarIdeia />} /> {/* 👈 adicionado */}
-          <Route path="/responder-proposta/:ideiaId" element={<ResponderProposta />} />
-          <Route path="/minhas-propostas" element={<MinhasPropostas />} />
-          <Route path="/chat" element={<Chat />} />
-          <Route path="/premium" element={<Premium />} />
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+          <Route path="/ideias" element={<RequireAuth><IdeiasList /></RequireAuth>} />
+          <Route path="/minhas-ideias" element={<RequireAuth><MinhasIdeias /></RequireAuth>} />
+          <Route path="/perfil" element={<RequireAuth><Perfil /></RequireAuth>} />
+          <Route path="/ideia/:id" element={<RequireAuth><Ideia /></RequireAuth>} />
+          <Route path="/editar-ideia/:id" element={<RequireAuth><EditarIdeia /></RequireAuth>} />
+          <Route path="/propostas/:ideiaId" element={<RequireAuth><Propostas /></RequireAuth>} />
+          <Route path="/criar-ideia" element={<RequireAuth><CriarIdeia /></RequireAuth>} />
+          <Route path="/responder-proposta/:ideiaId" element={<RequireAuth><ResponderProposta /></RequireAuth>} />
+          <Route path="/minhas-propostas" element={<RequireAuth><MinhasPropostas /></RequireAuth>} />
+          <Route path="/chat" element={<RequireAuth><Chat /></RequireAuth>} />
+          <Route path="/premium" element={<RequireAuth><Premium /></RequireAuth>} />
+          <Route path="/admin/dashboard" element={<RequireAuth><AdminDashboard /></RequireAuth>} />
         </Routes>
       </Layout>
     </Router>

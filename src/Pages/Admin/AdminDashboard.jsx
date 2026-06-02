@@ -3,6 +3,7 @@ import {
   BarChart3, TrendingUp, Users, Rocket, 
   AlertTriangle, CheckCircle, XCircle, Clock
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { apiRequest } from '../../services/api';
 import { getToken } from '../../utils/auth';
 import { toast } from 'react-hot-toast';
@@ -12,6 +13,7 @@ function AdminDashboard() {
   const [stats, setStats] = useState(null);
   const [denuncias, setDenuncias] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchData();
@@ -130,7 +132,19 @@ function AdminDashboard() {
             {denuncias.map(d => (
               <div key={d.id} className={styles.denunciaItem}>
                 <div className={styles.denunciaHeader}>
-                  <span className={styles.denunciaBadge}>{d.tipoAlvo} #{d.alvoId}</span>
+                  {String(d.tipoAlvo ?? '').toLowerCase().includes('ideia') ? (
+                    <button
+                      type="button"
+                      className={styles.denunciaBadge}
+                      onClick={() => navigate(`/ideia/${d.alvoId}`)}
+                      style={{ cursor: 'pointer', border: 'none' }}
+                      title="Ver ideia"
+                    >
+                      {d.tipoAlvo} #{d.alvoId}
+                    </button>
+                  ) : (
+                    <span className={styles.denunciaBadge}>{d.tipoAlvo} #{d.alvoId}</span>
+                  )}
                   <span className={`${styles.statusBadge} ${styles[d.status.toLowerCase()]}`}>{d.status}</span>
                 </div>
                 <p><strong>Motivo:</strong> {d.motivo}</p>

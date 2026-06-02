@@ -178,6 +178,7 @@ function ResponderProposta() {
   return (
     <div className={styles.page}>
       <Toaster position="top-right" />
+      <div className={styles.blob} />
       <div className={styles.container}>
 
         <button className={styles.backBtn} onClick={() => navigate(-1)}>
